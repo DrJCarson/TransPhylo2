@@ -1,5 +1,5 @@
 #' Build a matrix of probability of who infected whom from a MCMC output
-#' @param record Output from inferTTreeM function
+#' @param record Output from inferTTree function
 #' @param burnin Proportion of the MCMC output to be discarded as burnin
 #' @return Matrix of probability of who infected whom
 #' @export
@@ -27,8 +27,8 @@ computeMatWIW = function(record,burnin=0.5)
   return(mat)
 }
 
-#' Convert resTransPhyloM object to coda mcmc format
-#' @param record Output from inferTTreeM function
+#' Convert resTransPhylo object to coda mcmc format
+#' @param record Output from inferTTree function
 #' @param burnin Proportion of the MCMC output to be discarded as burnin
 #' @return Object of class mcmc from coda package
 #' @export

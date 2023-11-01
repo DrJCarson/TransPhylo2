@@ -90,3 +90,40 @@ plot.resTransPhylo <- function(x, ...) {
 
 }
 
+#' Plotting for ctree
+#' @param x Object of class ctree, ie a colored phylogenetic tree
+#' @param ... Additional parameters are passed on
+#' @return Plot of ctree
+#' @examples plot(simulateOutbreak())
+#' @export
+plot.ctree = function(x,...) {
+  stopifnot(inherits(x, "ctree"))
+  plotCTree(x,...)
+}
+
+#' Print function for ctree objects
+#' @param x Object of class ctree, ie a colored phylogenetic tree
+#' @param ... Additional parameters are passed on
+#' @return Print out details of the ctree
+#' @examples
+#' print(simulateOutbreak())
+#' @export
+print.ctree <- function(x, ...)
+{
+  stopifnot(inherits(x, "ctree"))
+  cat( 'Colored phylogenetic tree\n')
+  cat(sprintf('Number of sampled individuals=%d\n',length(x$nam)))
+  cat(sprintf('Total number of hosts=%d\n',max(x$ctree[,4])))
+  invisible(x)
+}
+
+
+#' Return the combined tree corresponding to a given iteration of the TransPhylo results
+#' @param res Output from inferTTree command
+#' @param iteration Number of the iteration to be extracted
+#' @return The colored tree at the specified iteeatino
+#' @export
+extractCTree <- function(res,iteration) {
+  stopifnot(inherits(res, "resTransPhylo"))
+  return(res[[iteration]]$ctree)
+}

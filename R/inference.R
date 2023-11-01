@@ -40,7 +40,7 @@
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
 #' @param verbose Whether or not to use verbose mode (default is false)
 #' @export
-inferTTreeM <- function(ptree,
+inferTTree <- function(ptree,
                         w.shape = 2,
                         w.scale = 1,
                         ws.shape = NA,
@@ -228,7 +228,7 @@ inferTTreeM <- function(ptree,
   ss.del.tr <- (1 - (1 / ss.d.tr)) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.tr * ss.a * (1 - ss.a)))
   ss.del.coa <- (1 - (1 / ss.d.coa)) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.coa * ss.a * (1 - ss.a)))
 
-  ttree <- extractTTreeM(ctree)
+  ttree <- extractTTree(ctree)
 
   record <- vector('list', mcmc.length / mcmc.thinning)
 
@@ -311,7 +311,7 @@ inferTTreeM <- function(ptree,
 
           ctree2 <- proptree$ctree
 
-          ttree2 <- extractTTreeM(ctree2)
+          ttree2 <- extractTTree(ctree2)
 
           pTTree_part <- log_lik_ttree(ttree, grid, fn_list, parms.curr.tr[["r"]], parms.curr.tr[["p"]], parms.curr.tr[["pi"]], w.shape, w.scale, ws.shape,
                                        ws.scale, obs.start, obs.end, grid.delta, proptree$curr_hosts)
