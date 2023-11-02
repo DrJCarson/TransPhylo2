@@ -127,3 +127,16 @@ extractCTree <- function(res,iteration) {
   stopifnot(inherits(res, "resTransPhylo"))
   return(res[[iteration]]$ctree)
 }
+
+
+#' Return the date of last sample from a ttree or ctree or ptree
+#' @param x A transmission tree or colored tree or phylogenetic tree
+#' @return date of the last sample
+#' @export
+dateLastSample <- function(x) {
+  if (inherits(x,'ctree')) return(max(x$ctree[,1]))
+  if (inherits(x,'ttree')) return(max(x$obs[,1]))
+  if (inherits(x,'ptree')) return(max(x$ptree[,1]))
+}
+
+

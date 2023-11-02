@@ -7,8 +7,8 @@
 simulateOutbreak(
   off.r = 1,
   off.p = 0.5,
-  kappa = 0.2,
-  lambda = 0.2,
+  kappa = 0.25,
+  lambda = 0.25,
   pi = 0.5,
   sec.p = 0,
   sec.n = 0,
@@ -23,10 +23,10 @@ simulateOutbreak(
   ws.std = NULL,
   dateStartOutbreak = 2000,
   dateS = NULL,
-  dateT = 2010,
+  dateT = Inf,
   grid.delta = 1/365,
   nSampled = NA,
-  limit = "hosts"
+  nObs = NA
 )
 }
 \arguments{
@@ -40,9 +40,9 @@ simulateOutbreak(
 
 \item{pi}{Probability of host being sampled}
 
-\item{sec.p}{Probability of repeated samples if limit is "samples" or "time".}
+\item{sec.p}{Probability of repeated samples if specifying dateT or nObs.}
 
-\item{sec.n}{Number of repeated sampled if limit is "hosts".}
+\item{sec.n}{Number of repeated samples per host if specifying nSampled.}
 
 \item{sec.t}{Time between repeated samples}
 
@@ -70,9 +70,9 @@ simulateOutbreak(
 
 \item{grid.delta}{Discrete time step}
 
-\item{nSampled}{Number of sampled hosts if limit is "hosts", or number of samples if limit is "samples".}
+\item{nSampled}{Number of sampled hosts.}
 
-\item{limit}{Limiting factor for the simulation: "hosts", "samples" or "time".}
+\item{nObs}{Number of samples.}
 }
 \description{
 Simulate an ongoing outbreak

@@ -5,8 +5,8 @@
 #' @param kappa Initial pathogen population
 #' @param lambda Pathogen population linear growth rate
 #' @param pi Probability of host being sampled
-#' @param sec.p Probability of repeated samples if limit is "samples" or "time".
-#' @param sec.n Number of repeated sampled if limit is "hosts".
+#' @param sec.p Probability of repeated samples if specifying dateT or nObs.
+#' @param sec.n Number of repeated samples per host if specifying nSampled.
 #' @param sec.t Time between repeated samples
 #' @param w.shape Shape parameter of generation time distribution
 #' @param w.scale Scale parameter of generation time distribution
@@ -20,14 +20,14 @@
 #' @param dateS Start time of outbreak sampling
 #' @param dateT Stop time of outbreak sampling
 #' @param grid.delta Discrete time step
-#' @param nSampled Number of sampled hosts if limit is "hosts", or number of samples if limit is "samples".
-#' @param limit Limiting factor for the simulation: "hosts", "samples" or "time".
+#' @param nSampled Number of sampled hosts.
+#' @param nObs Number of samples.
 #'
 #' @export
 simulateOutbreak <- function(off.r = 1,
                              off.p = 0.5,
-                             kappa = 0.2,
-                             lambda = 0.2,
+                             kappa = 0.25,
+                             lambda = 0.25,
                              pi = 0.5,
                              sec.p = 0.0,
                              sec.n = 0,
@@ -42,80 +42,19 @@ simulateOutbreak <- function(off.r = 1,
                              ws.std = NULL,
                              dateStartOutbreak = 2000,
                              dateS = NULL,
-                             dateT = 2010,
+                             dateT = Inf,
                              grid.delta = 1 / 365,
                              nSampled = NA,
-                             limit = "hosts") {
+                             nObs = NA) {
 
-  if (limit == "hosts") {
 
-    if (!is.finite(nSampled)) {
+  if (!is.finite(dateT) & !is.finite(nSampled) & !is.finite(nObs)) {
 
-      stop("Please supply a finite value for the number of sampled hosts (nSampled).")
+    stop("Please specify a finite value for dateT, nSampled, or nObs")
 
-    }
+  }
 
-    sim <- sim_ongoing_lim_hosts(off.r = off.r,
-                               off.p = off.p,
-                               kappa = kappa,
-                               lambda = lambda,
-                               pi = pi,
-                               sec.n = sec.n,
-                               sec.t = sec.t,
-                               w.shape = w.shape,
-                               w.scale = w.scale,
-                               ws.shape = ws.shape,
-                               ws.scale = ws.scale,
-                               w.mean = w.mean,
-                               w.std = w.std,
-                               ws.mean = ws.mean,
-                               ws.std = ws.std,
-                               outbreak.start = dateStartOutbreak,
-                               obs.start = dateS,
-                               grid.delta = grid.delta,
-                               host.lim = nSampled)
-
-    ctree <- sim$ctree
-    ctree$dateT <- sim$obs.end
-
-  } else if (limit == "samples") {
-
-    if (!is.finite(nSampled)) {
-
-      stop("Please supply a finite value for the number of samples (nSampled).")
-
-    }
-
-    sim <- sim_ongoing_lim_obs(off.r = off.r,
-                                off.p = off.p,
-                                kappa = kappa,
-                                lambda = lambda,
-                                pi = pi,
-                                sec.p = sec.p,
-                                sec.t = sec.t,
-                                w.shape = w.shape,
-                                w.scale = w.scale,
-                                ws.shape = ws.shape,
-                                ws.scale = ws.scale,
-                                w.mean = w.mean,
-                                w.std = w.std,
-                                ws.mean = ws.mean,
-                                ws.std = ws.std,
-                                outbreak.start = dateStartOutbreak,
-                                obs.start = dateS,
-                                grid.delta = grid.delta,
-                                obs.lim = nSampled)
-
-    ctree <- sim$ctree
-    ctree$dateT <- sim$obs.end
-
-  } else if (limit == "time") {
-
-    if (!is.finite(dateT)) {
-
-      stop("Please supply a finite end time for observations (dateT).")
-
-    }
+  if (is.finite(dateT)) {
 
     ctree <- sim_ongoing_lim_t(off.r = off.r,
                                off.p = off.p,
@@ -139,9 +78,55 @@ simulateOutbreak <- function(off.r = 1,
 
     ctree$dateT <- dateT
 
-  } else {
+  } else if (is.finite(nSampled)) {
 
-    stop("Please specify a valid limit: \"hosts\", \"samples\", or \"time\".")
+    sim <- sim_ongoing_lim_hosts(off.r = off.r,
+                                 off.p = off.p,
+                                 kappa = kappa,
+                                 lambda = lambda,
+                                 pi = pi,
+                                 sec.n = sec.n,
+                                 sec.t = sec.t,
+                                 w.shape = w.shape,
+                                 w.scale = w.scale,
+                                 ws.shape = ws.shape,
+                                 ws.scale = ws.scale,
+                                 w.mean = w.mean,
+                                 w.std = w.std,
+                                 ws.mean = ws.mean,
+                                 ws.std = ws.std,
+                                 outbreak.start = dateStartOutbreak,
+                                 obs.start = dateS,
+                                 grid.delta = grid.delta,
+                                 host.lim = nSampled)
+
+    ctree <- sim$ctree
+    ctree$dateT <- sim$obs.end
+
+  } else if (is.finite(nObs)) {
+
+    sim <- sim_ongoing_lim_obs(off.r = off.r,
+                               off.p = off.p,
+                               kappa = kappa,
+                               lambda = lambda,
+                               pi = pi,
+                               sec.p = sec.p,
+                               sec.t = sec.t,
+                               w.shape = w.shape,
+                               w.scale = w.scale,
+                               ws.shape = ws.shape,
+                               ws.scale = ws.scale,
+                               w.mean = w.mean,
+                               w.std = w.std,
+                               ws.mean = ws.mean,
+                               ws.std = ws.std,
+                               outbreak.start = dateStartOutbreak,
+                               obs.start = dateS,
+                               grid.delta = grid.delta,
+                               obs.lim = nSampled)
+
+    ctree <- sim$ctree
+    ctree$dateT <- sim$obs.end
 
   }
 
