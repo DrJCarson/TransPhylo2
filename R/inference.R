@@ -8,8 +8,8 @@
 #' @param w.std Std of the Gamma distribution representing the generation time
 #' @param ws.mean Mean of the Gamma distribution representing the sampling time
 #' @param ws.std Std of the Gamma distribution representing the sampling time
-#' @param mcmc.length Number of MCMC iterations to run the algorithm for
-#' @param mcmc.thinning MCMC thinning interval between two sampled iterations
+#' @param mcmcIterations Number of MCMC iterations to run the algorithm for
+#' @param thinning MCMC thinning interval between two sampled iterations
 #' @param mcmc.tree.updates Number of transmission tree updates per parameter update
 #' @param mcmc.cov.tr Initial proposal covariance for transmission parameters
 #' @param mcmc.cov.coa Initial proposal covariance for coalescent parameters
@@ -35,8 +35,8 @@
 #' @param kappa.scale Scale parameter for the Gamma prior of parameter kappa
 #' @param lambda.shape Shape parameter for the Gamma prior of parameter lambda
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
-#' @param obs.start Start date for observations
-#' @param obs.end End date for observations
+#' @param dateS Start date for observations
+#' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
 #' @param verbose Whether or not to use verbose mode (default is false)
 #' @export
@@ -49,8 +49,8 @@ inferTTree <- function(ptree,
                         w.std = NA,
                         ws.mean = NA,
                         ws.std = NA,
-                        mcmc.length = 12000,
-                        mcmc.thinning = 1,
+                        mcmcIterations = 12000,
+                        thinning = 1,
                         mcmc.tree.updates = NA,
                         mcmc.cov.tr = NA,
                         mcmc.cov.coa = NA,
@@ -76,8 +76,8 @@ inferTTree <- function(ptree,
                         kappa.scale = 1,
                         lambda.shape = 1,
                         lambda.scale = 1,
-                        obs.start = -Inf,
-                        obs.end = NA,
+                        dateS = -Inf,
+                        dateT = NA,
                         grid.delta = NA,
                         verbose = F) {
 
@@ -103,23 +103,23 @@ inferTTree <- function(ptree,
   prim_obs_times <- calc_prim_obs(ptree)
 
   # Ensure observation start time is consistent with observation times
-  if (obs.start > min(ptree$ptree[which(ptree$ptree[, 2] == 0), 1])) {
+  if (dateS > min(ptree$ptree[which(ptree$ptree[, 2] == 0), 1])) {
 
-    stop('The parameter obs.start cannot be later than any observation dates')
+    stop('The parameter dateS cannot be later than any observation dates')
 
   }
 
   # If no observation end date is provided, set to approximately 00:00 today
-  if (is.na(obs.end)) {
+  if (is.na(dateT)) {
 
-    obs.end <- 1970 + as.numeric(Sys.Date()) / 365.25
+    dateT <- 1970 + as.numeric(Sys.Date()) / 365.25
 
   }
 
   # Ensure observation end time is consistent with primary observation times
-  if (obs.end < max(prim_obs_times)) {
+  if (dateT < max(prim_obs_times)) {
 
-    stop('The parameter obs.end cannot be earlier than any primary observation dates')
+    stop('The parameter dateT cannot be earlier than any primary observation dates')
 
   }
 
@@ -208,8 +208,8 @@ inferTTree <- function(ptree,
   ss.v0.tr <- ss.d.tr
   ss.v0.coa <- ss.d.coa
 
-  #ss.f <- floor(0.5 * sqrt(2 * (1:mcmc.length)))
-  ss.f <- floor(0.5 * (1:mcmc.length))
+  #ss.f <- floor(0.5 * sqrt(2 * (1:mcmcIterations)))
+  ss.f <- floor(0.5 * (1:mcmcIterations))
 
   ss.min <- 0.1
 
@@ -230,27 +230,27 @@ inferTTree <- function(ptree,
 
   ttree <- extractTTree(ctree)
 
-  record <- vector('list', mcmc.length / mcmc.thinning)
+  record <- vector('list', mcmcIterations / thinning)
 
-  trace.r <- numeric(mcmc.length)
-  trace.p <- numeric(mcmc.length)
-  trace.pi <- numeric(mcmc.length)
-  trace.kappa <- numeric(mcmc.length)
-  trace.lambda <- numeric(mcmc.length)
+  trace.r <- numeric(mcmcIterations)
+  trace.p <- numeric(mcmcIterations)
+  trace.pi <- numeric(mcmcIterations)
+  trace.kappa <- numeric(mcmcIterations)
+  trace.lambda <- numeric(mcmcIterations)
 
-  grid <- seq(obs.end, min(ttree$ttree[, 1]) - 0.5 * 1 - grid.delta, by = - grid.delta)
+  grid <- seq(dateT, min(ttree$ttree[, 1]) - 0.5 * 1 - grid.delta, by = - grid.delta)
 
   fn_list <- num_approx_disc(grid, init.r, init.p, init.pi, w.shape, w.scale,
-                             ws.shape, ws.scale, obs.start, obs.end)
+                             ws.shape, ws.scale, dateS, dateT)
 
   pTTree <- log_lik_ttree(ttree, grid, fn_list, init.r, init.p, init.pi, w.shape, w.scale,
-                          ws.shape, ws.scale, obs.start, obs.end, grid.delta, NA)
+                          ws.shape, ws.scale, dateS, dateT, grid.delta, NA)
 
   pPTree <- log_lik_ptree_given_ctree(ctree, init.kappa, init.lambda, NA)
 
   if (verbose == F) {
 
-    pb <- utils::txtProgressBar(min = 0, max = mcmc.length, style = 3)
+    pb <- utils::txtProgressBar(min = 0, max = mcmcIterations, style = 3)
 
   }
 
@@ -266,7 +266,7 @@ inferTTree <- function(ptree,
                       "remove" = 0,
                       "move" = 0)
 
-  for (i in 1:mcmc.length) {
+  for (i in 1:mcmcIterations) {
 
     if (update.ctree) {
 
@@ -314,10 +314,10 @@ inferTTree <- function(ptree,
           ttree2 <- extractTTree(ctree2)
 
           pTTree_part <- log_lik_ttree(ttree, grid, fn_list, parms.curr.tr[["r"]], parms.curr.tr[["p"]], parms.curr.tr[["pi"]], w.shape, w.scale, ws.shape,
-                                       ws.scale, obs.start, obs.end, grid.delta, proptree$curr_hosts)
+                                       ws.scale, dateS, dateT, grid.delta, proptree$curr_hosts)
 
           pTTree_part2 <- log_lik_ttree(ttree2, grid, fn_list, parms.curr.tr[["r"]], parms.curr.tr[["p"]], parms.curr.tr[["pi"]], w.shape, w.scale, ws.shape,
-                                        ws.scale, obs.start, obs.end, grid.delta, proptree$prop_hosts)
+                                        ws.scale, dateS, dateT, grid.delta, proptree$prop_hosts)
 
           pPTree_part <- log_lik_ptree_given_ctree(ctree, parms.curr.coa[["kappa"]], parms.curr.coa[["lambda"]], proptree$curr_hosts)
 
@@ -348,10 +348,10 @@ inferTTree <- function(ptree,
 
             if (grid[length(grid)] > (min(ttree$ttree[, 1]) - 0.5 * 1)) {
 
-              grid <- seq(obs.end, min(ttree$ttree[, 1]) - 0.5 * 1 - grid.delta, by = - grid.delta)
+              grid <- seq(dateT, min(ttree$ttree[, 1]) - 0.5 * 1 - grid.delta, by = - grid.delta)
 
               fn_list <- num_approx_disc(grid, parms.curr.tr[["r"]], parms.curr.tr[["p"]], parms.curr.tr[["pi"]], w.shape, w.scale,
-                                         ws.shape, ws.scale, obs.start, obs.end)
+                                         ws.shape, ws.scale, dateS, dateT)
 
             }
 
@@ -361,14 +361,14 @@ inferTTree <- function(ptree,
 
       }
 
-      if (i %% mcmc.thinning == 0) {
+      if (i %% thinning == 0) {
 
         tree_acc_rates["add"] <- tree_acc_count["add"] / tree_prop_count["add"]
         tree_acc_rates["remove"] <- tree_acc_count["remove"] / tree_prop_count["remove"]
         tree_acc_rates["move"] <- tree_acc_count["move"] / tree_prop_count["move"]
 
-        record[[i / mcmc.thinning]]$tree.prop.counts <- tree_prop_count
-        record[[i / mcmc.thinning]]$tree.acc.rates <- tree_acc_rates
+        record[[i / thinning]]$tree.prop.counts <- tree_prop_count
+        record[[i / thinning]]$tree.acc.rates <- tree_acc_rates
 
       }
 
@@ -384,11 +384,11 @@ inferTTree <- function(ptree,
           parms.prop.tr["pi"] > 0 & parms.prop.tr["pi"] <= 1) {
 
         fn_list2 <- num_approx_disc(grid, parms.prop.tr[["r"]], parms.prop.tr[["p"]], parms.prop.tr[["pi"]], w.shape, w.scale,
-                                    ws.shape, ws.scale, obs.start, obs.end)
+                                    ws.shape, ws.scale, dateS, dateT)
 
         pTTree2 <- log_lik_ttree(ttree, grid, fn_list2, parms.prop.tr[["r"]], parms.prop.tr[["p"]],
                                  parms.prop.tr[["pi"]], w.shape, w.scale, ws.shape,
-                                 ws.scale, obs.start, obs.end, grid.delta, NA)
+                                 ws.scale, dateS, dateT, grid.delta, NA)
 
         ss.alpha.tr <- (pTTree2 - pTTree) +
           (dgamma(parms.prop.tr[["r"]], shape = r.shape, scale = r.scale, log = T) -
@@ -554,7 +554,7 @@ inferTTree <- function(ptree,
 
     }
 
-    if (i %% mcmc.thinning == 0) {
+    if (i %% thinning == 0) {
 
       if (verbose == F) {
 
@@ -570,31 +570,31 @@ inferTTree <- function(ptree,
 
       rec_ctree <- trim_root(ctree)
 
-      record[[i / mcmc.thinning]]$ctree <- rec_ctree
-      record[[i / mcmc.thinning]]$pTTree <- pTTree
-      record[[i / mcmc.thinning]]$pPTree <- pPTree
-      record[[i / mcmc.thinning]]$kappa <- parms.curr.coa[["kappa"]]
-      record[[i / mcmc.thinning]]$lambda <- parms.curr.coa[["lambda"]]
-      record[[i / mcmc.thinning]]$off.r <- parms.curr.tr[["r"]]
-      record[[i / mcmc.thinning]]$off.p <- parms.curr.tr[["p"]]
-      record[[i / mcmc.thinning]]$pi <- parms.curr.tr[["pi"]]
-      record[[i / mcmc.thinning]]$w.shape <- w.shape
-      record[[i / mcmc.thinning]]$w.scale <- w.scale
-      record[[i / mcmc.thinning]]$ws.shape <- ws.shape
-      record[[i / mcmc.thinning]]$ws.scale <- ws.scale
-      record[[i / mcmc.thinning]]$mcmc.cov.tr <- mcmc.cov.tr
-      record[[i / mcmc.thinning]]$ss.lam.tr <- ss.lam.tr
-      record[[i / mcmc.thinning]]$mcmc.cov.coa <- mcmc.cov.coa
-      record[[i / mcmc.thinning]]$ss.lam.coa <- ss.lam.coa
+      record[[i / thinning]]$ctree <- rec_ctree
+      record[[i / thinning]]$pTTree <- pTTree
+      record[[i / thinning]]$pPTree <- pPTree
+      record[[i / thinning]]$kappa <- parms.curr.coa[["kappa"]]
+      record[[i / thinning]]$lambda <- parms.curr.coa[["lambda"]]
+      record[[i / thinning]]$off.r <- parms.curr.tr[["r"]]
+      record[[i / thinning]]$off.p <- parms.curr.tr[["p"]]
+      record[[i / thinning]]$pi <- parms.curr.tr[["pi"]]
+      record[[i / thinning]]$w.shape <- w.shape
+      record[[i / thinning]]$w.scale <- w.scale
+      record[[i / thinning]]$ws.shape <- ws.shape
+      record[[i / thinning]]$ws.scale <- ws.scale
+      record[[i / thinning]]$mcmc.cov.tr <- mcmc.cov.tr
+      record[[i / thinning]]$ss.lam.tr <- ss.lam.tr
+      record[[i / thinning]]$mcmc.cov.coa <- mcmc.cov.coa
+      record[[i / thinning]]$ss.lam.coa <- ss.lam.coa
 
-      record[[i / mcmc.thinning]]$source <- rec_ctree$ctree[rec_ctree$ctree[which(rec_ctree$ctree[, 4] == 0), 2], 4]
-      if (record[[i / mcmc.thinning]]$source <= length(rec_ctree$nam)) {
+      record[[i / thinning]]$source <- rec_ctree$ctree[rec_ctree$ctree[which(rec_ctree$ctree[, 4] == 0), 2], 4]
+      if (record[[i / thinning]]$source <= length(rec_ctree$nam)) {
 
-        record[[i / mcmc.thinning]]$source <- rec_ctree$nam[record[[i / mcmc.thinning]]$source]
+        record[[i / thinning]]$source <- rec_ctree$nam[record[[i / thinning]]$source]
 
       } else {
 
-        record[[i / mcmc.thinning]]$source <- 'Unsampled'
+        record[[i / thinning]]$source <- 'Unsampled'
 
       }
 

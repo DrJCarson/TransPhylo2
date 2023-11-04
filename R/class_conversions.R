@@ -6,16 +6,98 @@
 #' @return phylogenetic tree
 #'
 #' @export
-ptreeFromPhylo <- function(tr,dateLastSample,host) {
-  if (!missing(host)) {
-    r=rank(unique(host))
-    names(r)=unique(host)
-    h=r[as.character(host)]
-    names(h)=names(host)
-    tr$tip.label=sprintf('%d.%s',h[tr$tip.label],tr$tip.label)
+ptreeFromPhylo <- function(tr, dateLastSample, host) {
+
+#  if (!missing(host)) {
+
+#    r = rank(unique(host))
+
+#    names(r) = unique(host)
+
+#    h = r[as.character(host)]
+
+##    names(h)=names(host)
+
+#    tr$tip.label = sprintf('%d.%s', h[tr$tip.label], tr$tip.label)
+
+#  }
+
+  if (dateLastSample > 1900 && dateLastSample < 2100 && sum(tr$edge.length) < 1) {
+
+    warning('Warning: input tree has small branch lengths. This needs to be a dated tree in the same unit as dateLastSample (eg years).\n')
+
+
   }
-  ptree=ptreeFromPhylo(tr,dateLastSample = dateLastSample)
-  ptree$host=as.numeric(unlist(strsplit(ptree$nam,'\\.'))[seq(1,length(ptree$nam)*2,2)]) #Extract host information from leaf names
+
+  n <- length(tr$tip.label)
+  ed <- tr$edge
+  le <- tr$edge.length
+
+  tra <- c(1:n, (2*n - 1):(n + 1))
+  ptree <- matrix(0, 2 * n - 1, 3)
+  if (n == 1) {
+
+    ptree[1, 1] = dateLastSample
+
+  }
+
+  for (i in 1:nrow(ed)) {
+
+    father <- tra[ed[i, 1]]
+    son <- tra[ed[i, 2]]
+    if (ptree[father, 2] == 0) {
+
+      ptree[father, 2] = son
+
+    } else {
+
+      ptree[father, 3] = son
+
+    }
+
+    ptree[son, 1]<-le[i]
+
+  }
+
+  todo <- 2 * n - 1
+  while (length(todo) > 0) {
+
+    t1 = todo[1]
+
+    if (ptree[t1, 2] == 0) {
+
+      todo = todo[-1]
+
+      next
+
+    }
+
+    ptree[ptree[t1, 2], 1] <- ptree[ptree[t1, 2], 1] + ptree[t1, 1]
+    ptree[ptree[t1, 3], 1] <- ptree[ptree[t1, 3], 1] + ptree[t1, 1]
+    todo = c(todo[-1], ptree[t1, 2], ptree[t1, 3])
+
+  }
+
+  ptree[, 1] = ptree[, 1] - max(ptree[, 1]) + dateLastSample
+  ptree[, 2:3] = ptree[, 3:2]
+
+  l = list(ptree = ptree, nam = tr$tip.label)
+  class(l) <- 'ptree'
+
+  ptree <- l
+
+#  ptree$host=as.numeric(unlist(strsplit(ptree$nam,'\\.'))[seq(1,length(ptree$nam)*2,2)]) #Extract host information from leaf names
+
+  if (missing(host)) {
+
+    ptree$host <- 1:length(tr$tip.label)
+
+  } else {
+
+    ptree$host <- host
+
+  }
+
   n=length(ptree$host) # Number of leaves
   w=(n+1):nrow(ptree$ptree) # Indexes of internal nodes
   o=order(ptree$host*1e10+ptree$ptree[1:n,1]) #Order needed for leaves: by host first and then from oldest to most recent
@@ -29,6 +111,7 @@ ptreeFromPhylo <- function(tr,dateLastSample,host) {
   ptree$ptree[w,3]=ot[ptree$ptree[w,3]]
   class(ptree)<-'ptree'
   return(ptree)
+
 }
 
 #' Converts a phylogenetic tree into an ape phylo object
