@@ -14,8 +14,8 @@ inferTTree(
   w.std = NA,
   ws.mean = NA,
   ws.std = NA,
-  mcmc.length = 12000,
-  mcmc.thinning = 1,
+  mcmcIterations = 12000,
+  thinning = 1,
   mcmc.tree.updates = NA,
   mcmc.cov.tr = NA,
   mcmc.cov.coa = NA,
@@ -41,8 +41,8 @@ inferTTree(
   kappa.scale = 1,
   lambda.shape = 1,
   lambda.scale = 1,
-  obs.start = -Inf,
-  obs.end = NA,
+  dateS = -Inf,
+  dateT = NA,
   grid.delta = NA,
   verbose = F
 )
@@ -66,9 +66,9 @@ inferTTree(
 
 \item{ws.std}{Std of the Gamma distribution representing the sampling time}
 
-\item{mcmc.length}{Number of MCMC iterations to run the algorithm for}
+\item{mcmcIterations}{Number of MCMC iterations to run the algorithm for}
 
-\item{mcmc.thinning}{MCMC thinning interval between two sampled iterations}
+\item{thinning}{MCMC thinning interval between two sampled iterations}
 
 \item{mcmc.tree.updates}{Number of transmission tree updates per parameter update}
 
@@ -120,9 +120,9 @@ inferTTree(
 
 \item{lambda.scale}{Scale parameter for the Gamma prior of parameter lambda}
 
-\item{obs.start}{Start date for observations}
+\item{dateS}{Start date for observations}
 
-\item{obs.end}{End date for observations}
+\item{dateT}{End date for observations}
 
 \item{grid.delta}{Grid resolution for approximating exclusion probabilities}
 
