@@ -22,6 +22,8 @@
 #' @param grid.delta Discrete time step
 #' @param nSampled Number of sampled hosts.
 #' @param nObs Number of samples.
+#' @param nLocs Number of possible locations.
+#' @param rho Probability of transmitting to the same location.
 #'
 #' @export
 simulateOutbreak <- function(off.r = 1,
@@ -45,7 +47,9 @@ simulateOutbreak <- function(off.r = 1,
                              dateT = Inf,
                              grid.delta = 1 / 365,
                              nSampled = NA,
-                             nObs = NA) {
+                             nObs = NA,
+                             nLocs = 1,
+                             rho = 0.8) {
 
 
   if (!is.finite(dateT) & !is.finite(nSampled) & !is.finite(nObs)) {
@@ -127,6 +131,38 @@ simulateOutbreak <- function(off.r = 1,
 
     ctree <- sim$ctree
     ctree$dateT <- sim$obs.end
+
+  }
+
+  if (nLocs > 1) {
+
+    pm <- matrix((1 - rho) / (nLocs - 1), nrow = nLocs, ncol = nLocs)
+    diag(pm) <- rho
+
+    ttree <- extractTTree(ctree)
+
+    locations <- numeric(length(ttree$ttree[, 1]))
+
+    todo <- which(ttree$ttree[, 3] == 0)
+    locations[which(ttree$ttree[, 3] == 0)] <- 1
+
+    while (length(todo) > 0) {
+
+      host <- todo[1]
+
+      children <- which(ttree$ttree[, 3] == host)
+
+      locations[children] <- sample(1:nLocs, size = length(children), replace = T, prob = pm[locations[host], ])
+
+      todo <- c(todo, children)
+
+      todo <- todo[-1]
+
+    }
+
+    obs_hosts <- which(ttree$ttree[, 2] > 0)
+
+    ctree$locations <- locations[obs_hosts]
 
   }
 

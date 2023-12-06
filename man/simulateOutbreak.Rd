@@ -26,7 +26,9 @@ simulateOutbreak(
   dateT = Inf,
   grid.delta = 1/365,
   nSampled = NA,
-  nObs = NA
+  nObs = NA,
+  nLocs = 1,
+  rho = 0.8
 )
 }
 \arguments{
@@ -73,6 +75,10 @@ simulateOutbreak(
 \item{nSampled}{Number of sampled hosts.}
 
 \item{nObs}{Number of samples.}
+
+\item{nLocs}{Number of possible locations.}
+
+\item{rho}{Probability of transmitting to the same location.}
 }
 \description{
 Simulate an ongoing outbreak

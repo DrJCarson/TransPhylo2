@@ -7,6 +7,7 @@ extractPTree <- function(ctree)  {
 
   tree <- ctree$ctree
   nam <- ctree$nam
+  locations <- ctree$locations
 
   n <- sum(tree[ ,2] + tree[ ,3] == 0)
 
@@ -33,7 +34,7 @@ extractPTree <- function(ctree)  {
 
   ptree <- tree[, 1:(ncol(tree) - 1), drop=FALSE]
 
-  l <- list(ptree = ptree, host = tree[1:n, 4], nam = nam)
+  l <- list(ptree = ptree, host = tree[1:n, 4], nam = nam, locations = locations)
   class(l) <- 'ptree'
 
   return(l)
@@ -49,6 +50,7 @@ extractPTree <- function(ctree)  {
 extractTTree <- function(ctree)  {
 
   nam <- ctree$nam
+  locations <- ctree$locations
   ctree <- ctree$ctree
 
   host <- ctree[ ,4]
@@ -82,7 +84,7 @@ extractTTree <- function(ctree)  {
 
   }
 
-  l <- list(ttree = ttree, obs = obs, nam = nam)
+  l <- list(ttree = ttree, obs = obs, nam = nam, locations = locations)
   class(l)<-'ttree'
 
   return(l)

@@ -18,12 +18,14 @@
 #' @param init.pi Starting value of sampling proportion pi
 #' @param init.kappa Starting value for the initial within-host population size
 #' @param init.lambda Starting value for the within-host population growth rate
+#' @param init.rho Starting value for the probability of transmission to the same location
 #' @param init.ctree Starting value for the combined tree
 #' @param update.r Whether to update the parameter r
 #' @param update.p Whether to update the parameter p
 #' @param update.pi Whether to update the parameter pi
 #' @param update.kappa Whether to update the parameter kappa
 #' @param update.lambda Whether to update the parameter lambda
+#' @param update.rho Whether to update parameter rho
 #' @param update.ctree Whether to update the transmission tree
 #' @param r.shape Shape parameter for the Gamma prior of parameter r
 #' @param r.scale Scale parameter for the Gamma prior of parameter r
@@ -35,6 +37,8 @@
 #' @param kappa.scale Scale parameter for the Gamma prior of parameter kappa
 #' @param lambda.shape Shape parameter for the Gamma prior of parameter lambda
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
+#' @param rho.shape1 Shape1 parameter for the Beta prior of parameter rho
+#' @param rho.shape2 Shape2 parameter for the Beta prior of parameter rho
 #' @param dateS Start date for observations
 #' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
@@ -59,12 +63,14 @@ inferTTree <- function(ptree,
                         init.pi = 0.5,
                         init.kappa = 0.5,
                         init.lambda = 0.5,
+                        init.rho = 0.8,
                         init.ctree = NA,
                         update.r = T,
                         update.p = F,
                         update.pi = T,
                         update.kappa = T,
                         update.lambda = T,
+                        update.rho = F,
                         update.ctree = T,
                         r.shape = 1,
                         r.scale = 1,
@@ -76,6 +82,8 @@ inferTTree <- function(ptree,
                         kappa.scale = 1,
                         lambda.shape = 1,
                         lambda.scale = 1,
+                        rho.shape1 = 1,
+                        rho.shape2 = 1,
                         dateS = -Inf,
                         dateT = NA,
                         grid.delta = NA,
@@ -101,6 +109,13 @@ inferTTree <- function(ptree,
 
   # Determine vector of primary observation times
   prim_obs_times <- calc_prim_obs(ptree)
+
+  # Check that locations are given if updating rho
+  if (length(ptree$locations) == 0 & update.rho) {
+
+    stop('Locations are needed in ptree to update parameter rho')
+
+  }
 
   # Ensure observation start time is consistent with observation times
   if (dateS > min(ptree$ptree[which(ptree$ptree[, 2] == 0), 1])) {
@@ -170,6 +185,8 @@ inferTTree <- function(ptree,
 
   }
 
+  mcmc.cov.rho <- 0.1 ^ 2 * as.numeric(update.rho)
+
   if (sum(is.na(init.ctree))) {
 
     ctree <- init_ctree(ptree)
@@ -193,9 +210,11 @@ inferTTree <- function(ptree,
                      pi = init.pi)
   parms.init.coa <- c(kappa = init.kappa,
                       lambda = init.lambda)
+  parms.init.rho <- init.rho
 
   parms.curr.tr <- parms.init.tr
   parms.curr.coa <- parms.init.coa
+  parms.curr.rho <- parms.init.rho
 
   ss.a <- 0.234
 
@@ -204,22 +223,25 @@ inferTTree <- function(ptree,
 
   ss.d.tr <- sum(as.numeric(update.tr))
   ss.d.coa <- sum(as.numeric(update.coa))
+  ss.d.rho <- sum(as.numeric(update.rho))
 
   ss.v0.tr <- ss.d.tr
   ss.v0.coa <- ss.d.coa
+  ss.v0.rho <- ss.d.rho
 
-  #ss.f <- floor(0.5 * sqrt(2 * (1:mcmcIterations)))
   ss.f <- floor(0.5 * (1:mcmcIterations))
 
   ss.min <- 0.1
 
   ss.c.tr <- 2.38 ^ 2 / ss.d.tr
   ss.c.coa <- 2.38 ^ 2 / ss.d.coa
+  ss.c.rho <- 2.38 ^ 2 / ss.d.rho
 
   ss.lamstart <- 1
 
   ss.lam.tr <- ss.lamstart
   ss.lam.coa <- ss.lamstart
+  ss.lam.rho <- ss.lamstart
 
   ss.nstart <- 5 / (ss.a * (1 - ss.a))
 
@@ -227,6 +249,7 @@ inferTTree <- function(ptree,
 
   ss.del.tr <- (1 - (1 / ss.d.tr)) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.tr * ss.a * (1 - ss.a)))
   ss.del.coa <- (1 - (1 / ss.d.coa)) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.coa * ss.a * (1 - ss.a)))
+  ss.del.rho <- (1 - (1 / ss.d.rho)) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.rho * ss.a * (1 - ss.a)))
 
   ttree <- extractTTree(ctree)
 
@@ -237,6 +260,7 @@ inferTTree <- function(ptree,
   trace.pi <- numeric(mcmcIterations)
   trace.kappa <- numeric(mcmcIterations)
   trace.lambda <- numeric(mcmcIterations)
+  trace.rho <- numeric(mcmcIterations)
 
   grid <- seq(dateT, min(ttree$ttree[, 1]) - 0.5 * 1 - grid.delta, by = - grid.delta)
 
@@ -247,6 +271,17 @@ inferTTree <- function(ptree,
                           ws.shape, ws.scale, dateS, dateT, grid.delta, NA)
 
   pPTree <- log_lik_ptree_given_ctree(ctree, init.kappa, init.lambda, NA)
+
+  if (update.rho) {
+
+    nlocs <- length(unique(ptree$locations))
+
+    pm <- matrix((1 - parms.curr.rho) / (nlocs - 1), nrow = nlocs, ncol = nlocs)
+    diag(pm) <- parms.curr.rho
+
+    pLocs <- log_lik_locs_felsenstein(ttree, pm)
+
+  }
 
   if (verbose == F) {
 
@@ -323,11 +358,31 @@ inferTTree <- function(ptree,
 
           pPTree_part2 <- log_lik_ptree_given_ctree(ctree2, parms.curr.coa[["kappa"]], parms.curr.coa[["lambda"]], proptree$prop_hosts)
 
+          if (update.rho) {
+
+            pLocs2 <- log_lik_locs_felsenstein(ttree2, pm)
+
+            pLocs_diff <- pLocs2 - pLocs
+
+          } else {
+
+            pLocs_diff <- 0
+
+          }
+
+
           if (log(runif(1)) < (pTTree_part2 + pPTree_part2 + proptree$rev_density -
-                               pTTree_part - pPTree_part - proptree$prop_density)) {
+                               pTTree_part - pPTree_part - proptree$prop_density +
+                               pLocs_diff)) {
 
             ctree <- ctree2
             ttree <- ttree2
+
+            if (update.rho) {
+
+              pLocs <- pLocs2
+
+            }
 
             pTTree <- pTTree + pTTree_part2 - pTTree_part
             pPTree <- pPTree + pPTree_part2 - pPTree_part
@@ -554,6 +609,90 @@ inferTTree <- function(ptree,
 
     }
 
+    if (update.rho) {
+
+      parms.prop.rho <- rnorm(1, mean = parms_curr.rho, sd = sqrt(ss.lam.rho * ss.c.rho * mcmc.cov.rho))
+
+      ss.u.rho <- log(runif(1))
+
+      if (parms.prop.rho >= 0 & parms.prop.rho <= 1) {
+
+        pm2 <- matrix((1 - parms.prop.rho) / (nlocs - 1), nrow = nlocs, ncol = nlocs)
+        diag(pm2) <- parms.prop.rho
+
+        pLocs2 <- log_lik_locs_felsenstein(ttree, pm2)
+
+        ss.alpha.rho <- (pLocs2 - pLocs) +
+          (dbeta(parms.prop.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
+             dbeta(parms.curr.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T))
+
+      } else {
+
+        ss.alpha.rho <- -Inf
+
+      }
+
+      if (ss.u.rho < ss.alpha.rho) {
+
+        parms.curr.rho <- parms.prop.rho
+
+        pm <- pm2
+        pLocs <- pLocs2
+
+      }
+
+      trace.rho[i] <- parms.curr.rho
+
+      if (i == 1) {
+
+        mcmc.mu.rho <- 0.5 * (parms.init.rho + parms.curr.rho)
+
+        mcmc.cov.rho <- (1 / (ss.v0.rho + ss.d.rho + 3)) * (parms.init.rho * parms.init.rho +
+                                                              parms.curr.rho * parms.curr.rho +
+                                                              (ss.v0.rho + ss.d.rho + 1) * mcmc.cov.rho -
+                                                              2 * mcmc.mu.rho * mcmc.mu.rho)
+
+      } else if (ss.f[i] == ss.f[i - 1]) {
+
+        mcmc.mu.new.rho <- ((i - ss.f[i]) / (i - ss.f[i] + 1)) * mcmc.mu.rho +
+          (1 / (i - ss.f[i] + 1)) * parms.curr.rho
+
+        mcmc.cov.rho <- (1 / (i - ss.f[i] + ss.v0.rho + ss.d.rho + 2)) *
+          ((i - ss.f[i] + ss.v0.rho + ss.d.rho + 1) * mcmc.cov.rho +
+             parms.curr.rho * parms.curr.rho +
+             (i - ss.f[i]) * mcmc.mu.rho * mcmc.mu.rho -
+             (i - ss.f[i] + 1) * mcmc.mu.new.rho * mcmc.mu.new.rho)
+
+        mcmc.mu.rho <- mcmc.mu.new.rho
+
+      } else {
+
+        rem.el <- ss.f[i] - 1
+
+        if (rem.el == 0) {
+
+          parms.rem.rho <- parms.init.rho
+
+        } else {
+
+          parms.rem.rho <- trace.rho[rem.el]
+
+        }
+
+        mcmc.mu.new.rho <- mcmc.mu.rho + (1 / (i - ss.f[i] + 1)) * (parms.curr.rho - parms.rem.rho)
+
+        mcmc.cov.rho <- mcmc.cov.rho + (1 / (i - ss.f[i] + ss.v0.rho + ss.d.rho + 2)) *
+          (parms.curr.rho * parms.curr.rho - parms.rem.rho * parms.rem.rho +
+             (i - ss.f[i] + 1) * (mcmc.mu.rho * mcmc.mu.rho - mcmc.mu.new.rho * mcmc.mu.new.rho))
+
+        mcmc.mu.rho <- mcmc.mu.new.rho
+
+      }
+
+      ss.lam.rho <- max(c(ss.min, ss.lam.rho * exp((ss.del.rho / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.rho))) - ss.a))))
+
+    }
+
     if (i %% thinning == 0) {
 
       if (verbose == F) {
@@ -575,6 +714,7 @@ inferTTree <- function(ptree,
       record[[i / thinning]]$pPTree <- pPTree
       record[[i / thinning]]$kappa <- parms.curr.coa[["kappa"]]
       record[[i / thinning]]$lambda <- parms.curr.coa[["lambda"]]
+      record[[i / thinning]]$rho <- parms.curr.rho
       record[[i / thinning]]$off.r <- parms.curr.tr[["r"]]
       record[[i / thinning]]$off.p <- parms.curr.tr[["p"]]
       record[[i / thinning]]$pi <- parms.curr.tr[["pi"]]
@@ -586,6 +726,8 @@ inferTTree <- function(ptree,
       record[[i / thinning]]$ss.lam.tr <- ss.lam.tr
       record[[i / thinning]]$mcmc.cov.coa <- mcmc.cov.coa
       record[[i / thinning]]$ss.lam.coa <- ss.lam.coa
+      record[[i / thinning]]$mcmc.cov.rho <- mcmc.cov.rho
+      record[[i / thinning]]$ss.lam.rho <- ss.lam.rho
 
       record[[i / thinning]]$source <- rec_ctree$ctree[rec_ctree$ctree[which(rec_ctree$ctree[, 4] == 0), 2], 4]
       if (record[[i / thinning]]$source <= length(rec_ctree$nam)) {

@@ -7,6 +7,7 @@ remove_add <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1, epsilon =
 
   # Extract ctree
   nam <- ctree$nam
+  locations <- ctree$locations
   ctree <- ctree$ctree
 
   # Sample rows and host
@@ -576,7 +577,7 @@ remove_add <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1, epsilon =
 
   }
 
-  new_ctree <- list(ctree = ctree, nam = nam)
+  new_ctree <- list(ctree = ctree, nam = nam, locations = locations)
   class(new_ctree) <- 'ctree'
 
   return(list(ctree = new_ctree, prop_density = prop_density, rev_density = rev_density, is_possible = 1,
@@ -594,6 +595,7 @@ add_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) {
 
   # Extract ctree
   nam <- ctree$nam
+  locations <- ctree$locations
   ctree <- ctree$ctree
 
   # Total number of hosts
@@ -1083,7 +1085,7 @@ add_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) {
   # Log density of reverse move
   rev_density <- -log(length(unique(tr_host2)))
 
-  new_ctree <- list(ctree = ctree, nam = nam)
+  new_ctree <- list(ctree = ctree, nam = nam, locations = locations)
   class(new_ctree) <- 'ctree'
 
   return(list(ctree = new_ctree, prop_density = prop_density, rev_density = rev_density, is_possible = 1,
@@ -1099,6 +1101,7 @@ remove_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) 
 
   # Extract ctree
   nam <- ctree$nam
+  locations <- ctree$locations
   ctree <- ctree$ctree
 
   # Sample rows and host
@@ -1115,7 +1118,7 @@ remove_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) 
 
   if (length(tr_idx) == 0) {
 
-    new_ctree <- list(ctree = ctree, nam = nam)
+    new_ctree <- list(ctree = ctree, nam = nam, locations = locations)
     class(new_ctree) <- 'ctree'
 
     return(list(ctree = new_ctree, prop_density = 1, rev_density = 1, is_possible = 0,
@@ -1582,7 +1585,7 @@ remove_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) 
 
   prop_hosts <- ctree[rows_host[1], 4]
 
-  new_ctree <- list(ctree = ctree, nam = nam)
+  new_ctree <- list(ctree = ctree, nam = nam, locations = locations)
   class(new_ctree) <- 'ctree'
 
   return(list(ctree = new_ctree, prop_density = prop_density, rev_density = rev_density, is_possible = 1,

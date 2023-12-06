@@ -222,3 +222,114 @@ log_lik_ptree_given_ctree <- function(ctree, kappa, lambda, hosts = NA) {
   return(log_lik)
 
 }
+
+
+#' Locations likelihood for a transmission tree using Felsenstein pruning
+#'
+#' @param ttree Transmission tree
+#' @param pm Probability transition matrix between locations
+log_lik_locs_felsenstein <- function(ttree, pm) {
+
+  # Initiate log likelihood
+  log_lik <- 0
+
+  locations <- ttree$locations
+  ttree <- ttree$ttree
+
+  # Number of locations
+  n_locs <- dim(pm)[1]
+
+  # Total number of hosts  in transmission tree
+  n_inds <- length(ttree[, 1])
+
+  # Probabilities for each location for each host
+  loc_probs <- array(rep(0, n_inds * n_locs), dim = c(n_inds, n_locs))
+
+  # Order in which to calculate location probabilities
+  rev_order <- order(ttree[, 1] , decreasing = T)
+
+  for (i in 1:n_inds) {
+
+    host <- rev_order[i]
+
+    # Not a leaf
+    if (host %in% ttree[, 3]) {
+
+      children <- which(ttree[, 3] == host)
+
+      if (ttree[host, 2] > 0) {
+
+        # Calculate location probabilities
+        hl <- locations[host]
+
+        loc_probs[host, hl] <- 1
+
+        for (j in 1:length(children)) {
+
+          child <- children[j]
+
+          temp_prob <- 0
+
+          for (cl in 1:n_locs) {
+
+            temp_prob <- temp_prob + pm[hl, cl] * loc_probs[child, cl]
+
+          }
+
+          loc_probs[host, hl] <- loc_probs[host, hl] * temp_prob
+
+        }
+
+        # Host is root host
+        if (i == n_inds) {
+
+          log_lik <- log(loc_probs[host, locations[host]])
+
+        }
+
+      } else {
+
+        # Calculate location probabilities
+        for (hl in 1:n_locs) {
+
+          loc_probs[host, hl] <- 1
+
+          for (j in 1:length(children)) {
+
+            child <- children[j]
+
+            temp_prob <- 0
+
+            for (cl in 1:n_locs) {
+
+              temp_prob <- temp_prob + pm[hl, cl] * loc_probs[child, cl]
+
+            }
+
+            loc_probs[host, hl] <- loc_probs[host, hl] * temp_prob
+
+          }
+
+        }
+
+        # Host is root host
+        if (i == n_inds) {
+
+          log_lik <- log(mean(loc_probs[host,]))
+
+        }
+
+      }
+
+    } else {
+
+      # Location known, no likelihood update for leaf
+      loc_probs[host, locations[host]] <- 1
+
+    }
+
+  }
+
+  return(log_lik)
+
+}

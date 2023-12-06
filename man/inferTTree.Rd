@@ -24,12 +24,14 @@ inferTTree(
   init.pi = 0.5,
   init.kappa = 0.5,
   init.lambda = 0.5,
+  init.rho = 0.8,
   init.ctree = NA,
   update.r = T,
   update.p = F,
   update.pi = T,
   update.kappa = T,
   update.lambda = T,
+  update.rho = F,
   update.ctree = T,
   r.shape = 1,
   r.scale = 1,
@@ -41,6 +43,8 @@ inferTTree(
   kappa.scale = 1,
   lambda.shape = 1,
   lambda.scale = 1,
+  rho.shape1 = 1,
+  rho.shape2 = 1,
   dateS = -Inf,
   dateT = NA,
   grid.delta = NA,
@@ -86,6 +90,8 @@ inferTTree(
 
 \item{init.lambda}{Starting value for the within-host population growth rate}
 
+\item{init.rho}{Starting value for the probability of transmission to the same location}
+
 \item{init.ctree}{Starting value for the combined tree}
 
 \item{update.r}{Whether to update the parameter r}
@@ -97,6 +103,8 @@ inferTTree(
 \item{update.kappa}{Whether to update the parameter kappa}
 
 \item{update.lambda}{Whether to update the parameter lambda}
+
+\item{update.rho}{Whether to update parameter rho}
 
 \item{update.ctree}{Whether to update the transmission tree}
 
@@ -119,6 +127,10 @@ inferTTree(
 \item{lambda.shape}{Shape parameter for the Gamma prior of parameter lambda}
 
 \item{lambda.scale}{Scale parameter for the Gamma prior of parameter lambda}
+
+\item{rho.shape1}{Shape1 parameter for the Beta prior of parameter rho}
+
+\item{rho.shape2}{Shape2 parameter for the Beta prior of parameter rho}
 
 \item{dateS}{Start date for observations}
 
