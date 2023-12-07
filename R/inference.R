@@ -27,6 +27,7 @@
 #' @param update.lambda Whether to update the parameter lambda
 #' @param update.rho Whether to update parameter rho
 #' @param update.ctree Whether to update the transmission tree
+#' @param nLocs Number of possible locations
 #' @param r.shape Shape parameter for the Gamma prior of parameter r
 #' @param r.scale Scale parameter for the Gamma prior of parameter r
 #' @param p.shape1 Shape1 parameter for the Beta prior of parameter p
@@ -72,6 +73,7 @@ inferTTree <- function(ptree,
                         update.lambda = T,
                         update.rho = F,
                         update.ctree = T,
+                        nLocs = NA,
                         r.shape = 1,
                         r.scale = 1,
                         p.shape1 = 1,
@@ -274,9 +276,13 @@ inferTTree <- function(ptree,
 
   if (update.rho) {
 
-    nlocs <- length(unique(ptree$locations))
+    if (is.na(nLocs)) {
 
-    pm <- matrix((1 - parms.curr.rho) / (nlocs - 1), nrow = nlocs, ncol = nlocs)
+      nLocs <- max(ptree$locations)
+
+    }
+
+    pm <- matrix((1 - parms.curr.rho) / (nLocs - 1), nrow = nLocs, ncol = nLocs)
     diag(pm) <- parms.curr.rho
 
     pLocs <- log_lik_locs_felsenstein(ttree, pm)
@@ -611,13 +617,13 @@ inferTTree <- function(ptree,
 
     if (update.rho) {
 
-      parms.prop.rho <- rnorm(1, mean = parms_curr.rho, sd = sqrt(ss.lam.rho * ss.c.rho * mcmc.cov.rho))
+      parms.prop.rho <- rnorm(1, mean = parms.curr.rho, sd = sqrt(ss.lam.rho * ss.c.rho * mcmc.cov.rho))
 
       ss.u.rho <- log(runif(1))
 
       if (parms.prop.rho >= 0 & parms.prop.rho <= 1) {
 
-        pm2 <- matrix((1 - parms.prop.rho) / (nlocs - 1), nrow = nlocs, ncol = nlocs)
+        pm2 <- matrix((1 - parms.prop.rho) / (nLocs - 1), nrow = nLocs, ncol = nLocs)
         diag(pm2) <- parms.prop.rho
 
         pLocs2 <- log_lik_locs_felsenstein(ttree, pm2)

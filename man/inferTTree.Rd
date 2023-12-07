@@ -33,6 +33,7 @@ inferTTree(
   update.lambda = T,
   update.rho = F,
   update.ctree = T,
+  nLocs = NA,
   r.shape = 1,
   r.scale = 1,
   p.shape1 = 1,
@@ -107,6 +108,8 @@ inferTTree(
 \item{update.rho}{Whether to update parameter rho}
 
 \item{update.ctree}{Whether to update the transmission tree}
+
+\item{nLocs}{Number of possible locations}
 
 \item{r.shape}{Shape parameter for the Gamma prior of parameter r}
 
