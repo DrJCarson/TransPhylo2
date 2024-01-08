@@ -257,7 +257,7 @@ log_lik_locs_felsenstein <- function(ttree, pm) {
 
       children <- which(ttree[, 3] == host)
 
-      if (ttree[host, 2] > 0) {
+      if (ttree[host, 2] > 0 & !is.na(locations[host])) {
 
         # Calculate location probabilities
         hl <- locations[host]
@@ -323,8 +323,16 @@ log_lik_locs_felsenstein <- function(ttree, pm) {
 
     } else {
 
-      # Location known, no likelihood update for leaf
-      loc_probs[host, locations[host]] <- 1
+      if (!is.na(locations[host])) {
+
+        # If location known, no likelihood update for leaf
+        loc_probs[host, locations[host]] <- 1
+
+      } else {
+
+        loc_probs[host, ] <- 1
+
+      }
 
     }
 
