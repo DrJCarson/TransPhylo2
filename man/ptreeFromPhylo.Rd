@@ -4,7 +4,7 @@
 \alias{ptreeFromPhylo}
 \title{Converts an ape phylo object into a phylogenetic tree with host information}
 \usage{
-ptreeFromPhylo(tr, dateLastSample, host)
+ptreeFromPhylo(tr, dateLastSample, host, locations)
 }
 \arguments{
 \item{tr}{phylo object}
@@ -12,6 +12,8 @@ ptreeFromPhylo(tr, dateLastSample, host)
 \item{dateLastSample}{date of the last sample}
 
 \item{host}{Optional host information, if not present the leaf names needs to contain this, eg 1.1 etc}
+
+\item{locations}{Optional location information, locations must be categorized as contiguous integers. NA can be used for missing data.}
 }
 \value{
 phylogenetic tree

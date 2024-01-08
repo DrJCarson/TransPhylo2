@@ -3,10 +3,11 @@
 #' @param tr phylo object
 #' @param dateLastSample date of the last sample
 #' @param host Optional host information, if not present the leaf names needs to contain this, eg 1.1 etc
+#' @param locations Optional location information, locations must be categorized as contiguous integers. NA can be used for missing data.
 #' @return phylogenetic tree
 #'
 #' @export
-ptreeFromPhylo <- function(tr, dateLastSample, host) {
+ptreeFromPhylo <- function(tr, dateLastSample, host, locations) {
 
 #  if (!missing(host)) {
 
@@ -109,6 +110,14 @@ ptreeFromPhylo <- function(tr, dateLastSample, host) {
   ptree$ptree=ptree$ptree[o,] #Reorder ptree
   ptree$ptree[w,2]=ot[ptree$ptree[w,2]]
   ptree$ptree[w,3]=ot[ptree$ptree[w,3]]
+
+  if (!missing(locations)) {
+
+    ptree$locations = locations[o[1:n]]
+
+  }
+
+
   class(ptree)<-'ptree'
   return(ptree)
 

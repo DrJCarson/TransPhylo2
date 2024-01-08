@@ -51,8 +51,7 @@ ape::axisPhylo(backward = F)
 
 
 ```{r,results='hide'}
-ptree<-ptreeFromPhylo(p,dateLastSample=dateLastSample(simu))
-ptree$locations=simu$locations
+ptree<-ptreeFromPhylo(p,dateLastSample=dateLastSample(simu),locations=simu$locations)
 res<-inferTTree(ptree,mcmcIterations=1000,w.shape=10,w.scale=0.1,dateT=2008,update.rho=T)
 ```
 
