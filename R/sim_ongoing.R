@@ -160,9 +160,9 @@ simulateOutbreak <- function(off.r = 1,
 
     }
 
-    obs_hosts <- which(ttree$ttree[, 2] > 0)
+#    obs_hosts <- which(ttree$ttree[, 2] > 0)
 
-    ctree$locations <- locations[obs_hosts]
+    ctree$locations <- locations
 
   }
 

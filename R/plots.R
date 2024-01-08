@@ -409,15 +409,23 @@ plotLocsCTree = function(tree,showLabels=TRUE,showStars=TRUE,cols=NA,maxTime=NA,
     y <- ys[w]
 
 
-    if (host[w] > length(locations)) {
+  if (length(locations[host[w]]) > 0) {
 
-      col = 'grey80'
+      if (is.na(locations[host[w]])) {
 
-    } else {
+        col = 'grey80'
 
-      col=locations[host[w]]
+      } else {
 
-    }
+        col=locations[host[w]]
+
+      }
+
+  } else {
+
+    col = 'grey80'
+
+  }
 
     if (tree[w,2] == 0 && tree[w,3] == 0)  {
       #Leaf node
@@ -444,15 +452,23 @@ plotLocsCTree = function(tree,showLabels=TRUE,showStars=TRUE,cols=NA,maxTime=NA,
     y <- ys[w]
 
 
-    if (host[w] > length(locations)) {
+  if (length(locations[host[w]]) > 0) {
 
-      col = 'grey80'
+      if (is.na(locations[host[w]])) {
 
-    } else {
+        col = 'grey80'
 
-      col=locations[host[w]]
+      } else {
 
-    }
+        col=locations[host[w]]
+
+      }
+
+  } else {
+
+    col = 'grey80'
+
+  }
 
     if (tree[w,2] == 0 && tree[w,3] == 0)  {
       #Leaf node
