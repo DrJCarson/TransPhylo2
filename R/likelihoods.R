@@ -283,7 +283,7 @@ log_lik_locs_felsenstein <- function(ttree, pm) {
         # Host is root host
         if (i == n_inds) {
 
-          log_lik <- log(loc_probs[host, locations[host]])
+          log_lik <- log(loc_probs[host, locations[host]]) - log(n_locs)
 
         }
 
