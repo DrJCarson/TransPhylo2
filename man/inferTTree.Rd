@@ -136,6 +136,8 @@ inferTTree(
 
 \item{rho.shape2}{Shape2 parameter for the Beta prior of parameter rho}
 
+\item{locs.prior}{Prior probability for the location of the root host}
+
 \item{dateS}{Start date for observations}
 
 \item{dateT}{End date for observations}

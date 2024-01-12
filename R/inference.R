@@ -40,6 +40,7 @@
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
 #' @param rho.shape1 Shape1 parameter for the Beta prior of parameter rho
 #' @param rho.shape2 Shape2 parameter for the Beta prior of parameter rho
+#' @param locs.prior Prior probability for the location of the root host
 #' @param dateS Start date for observations
 #' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities

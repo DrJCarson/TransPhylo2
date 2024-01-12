@@ -228,6 +228,7 @@ log_lik_ptree_given_ctree <- function(ctree, kappa, lambda, hosts = NA) {
 #'
 #' @param ttree Transmission tree
 #' @param pm Probability transition matrix between locations
+#' @param locs.prior Prior probability for the location of the root host
 log_lik_locs_felsenstein <- function(ttree, pm, locs.prior) {
 
   # Initiate log likelihood

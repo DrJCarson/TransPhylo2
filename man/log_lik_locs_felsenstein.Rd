@@ -10,6 +10,8 @@ log_lik_locs_felsenstein(ttree, pm, locs.prior)
 \item{ttree}{Transmission tree}
 
 \item{pm}{Probability transition matrix between locations}
+
+\item{locs.prior}{Prior probability for the location of the root host}
 }
 \description{
 Locations likelihood for a transmission tree using Felsenstein pruning
