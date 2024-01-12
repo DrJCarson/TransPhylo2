@@ -228,7 +228,7 @@ log_lik_ptree_given_ctree <- function(ctree, kappa, lambda, hosts = NA) {
 #'
 #' @param ttree Transmission tree
 #' @param pm Probability transition matrix between locations
-log_lik_locs_felsenstein <- function(ttree, pm) {
+log_lik_locs_felsenstein <- function(ttree, pm, locs.prior) {
 
   # Initiate log likelihood
   log_lik <- 0
@@ -283,7 +283,7 @@ log_lik_locs_felsenstein <- function(ttree, pm) {
         # Host is root host
         if (i == n_inds) {
 
-          log_lik <- log(loc_probs[host, locations[host]]) - log(n_locs)
+          log_lik <- log(locs.prior[locations[host]] * loc_probs[host, locations[host]])
 
         }
 
@@ -315,7 +315,7 @@ log_lik_locs_felsenstein <- function(ttree, pm) {
         # Host is root host
         if (i == n_inds) {
 
-          log_lik <- log(mean(loc_probs[host,]))
+          log_lik <- log(sum(locs.prior * loc_probs[host,]))
 
         }
 

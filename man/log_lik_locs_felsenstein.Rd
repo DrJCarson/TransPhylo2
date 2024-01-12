@@ -4,7 +4,7 @@
 \alias{log_lik_locs_felsenstein}
 \title{Locations likelihood for a transmission tree using Felsenstein pruning}
 \usage{
-log_lik_locs_felsenstein(ttree, pm)
+log_lik_locs_felsenstein(ttree, pm, locs.prior)
 }
 \arguments{
 \item{ttree}{Transmission tree}

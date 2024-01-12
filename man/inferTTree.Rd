@@ -46,6 +46,7 @@ inferTTree(
   lambda.scale = 1,
   rho.shape1 = 1,
   rho.shape2 = 1,
+  locs.prior = NA,
   dateS = -Inf,
   dateT = NA,
   grid.delta = NA,
