@@ -60,6 +60,80 @@ num_approx_disc <- function(grid,
 
 
 
+#' Numeric approximations (discretised) of branching process
+#'
+#' @param grid Discrete grid over which to evaluate functions
+#' @param off.r Shape parameter for the number of offspring
+#' @param off.p Probability parameter for the number of offspring
+#' @param pi Probability of host being observed
+#' @param w.shape Shape parameter of generation time distribution
+#' @param w.scale Scale parameter of generation time distribution
+#' @param ws.shape Shape parameter of primary sampling time distribution
+#' @param ws.scale Scale parameter of primary sampling time distribution
+#' @param obs.start Start date for observations
+#' @param obs.end End date for observations
+#' @param ndemes Number of demes
+num_approx_disc_multi <- function(grid,
+                            off.r,
+                            off.p,
+                            pi,
+                            w.shape,
+                            w.scale,
+                            ws.shape,
+                            ws.scale,
+                            obs.start,
+                            obs.end,
+                            demeP,
+                            ndemes) {
+
+  grid.size <- length(grid)
+
+  omega <- array(numeric(grid.size * ndemes), dim = c(grid.size, ndemes))
+  omega_bar <- array(numeric(grid.size * ndemes), dim = c(grid.size, ndemes))
+  phi <- array(numeric(grid.size * ndemes), dim = c(grid.size, ndemes))
+  pit <- array(numeric(grid.size * ndemes), dim = c(grid.size, ndemes))
+
+  for (d in 1:ndemes) {
+
+    omega[1, d] <- 1
+    omega_bar[1, d] <- 1
+    phi[1, d] <- 1
+
+    pit[, d] <- pi[d] * (pgamma(obs.end - grid, shape = ws.shape, scale = ws.scale) -
+                           pgamma(obs.start - grid, shape = ws.shape, scale = ws.scale))
+
+  }
+
+  gamma_prob <- pgamma(grid[1] - grid,  shape = w.shape, scale = w.scale) -
+    pgamma(grid[2] - grid,  shape = w.shape, scale = w.scale)
+
+  ft <- 1 - cumsum(gamma_prob)
+
+  for (g in 2:grid.size) {
+
+    omega_P <- omega[1:g - 1, ] %*% t(demeP)
+
+    for (d in 1:ndemes) {
+
+      omega_bar[g, d] <- ft[g] + sum(gamma_prob[g:2] * omega_P[, d])
+
+      phi[g, d] <- (off.p[d] / (1 - (1 - off.p[d]) * omega_bar[g, d])) ^ off.r[d]
+
+      omega[g, d] <- (1 - pit[g, d]) * phi[g, d]
+
+    }
+
+  }
+
+  return(list(omega = omega,
+              omega_bar = omega_bar,
+              phi = phi,
+              pit = pit,
+              gamma_prob = gamma_prob))
+
+}
+
+
 #' Order hosts in a coloured tree
 #'
 #' @param ctree Current coloured tree
