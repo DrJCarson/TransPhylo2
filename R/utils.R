@@ -83,8 +83,8 @@ num_approx_disc_multi <- function(grid,
                             ws.scale,
                             obs.start,
                             obs.end,
-                            demeP,
-                            ndemes) {
+                            ndemes,
+                            pm) {
 
   grid.size <- length(grid)
 
@@ -111,7 +111,7 @@ num_approx_disc_multi <- function(grid,
 
   for (g in 2:grid.size) {
 
-    omega_P <- omega[1:g - 1, ] %*% t(demeP)
+    omega_P <- omega[1:g - 1, ] %*% t(pm)
 
     for (d in 1:ndemes) {
 

@@ -26,7 +26,7 @@
 #' @param rho Probability of transmitting to the same location.
 #'
 #' @export
-simulateOutbreak <- function(off.r = 1,
+simulateOutbreakmulti <- function(off.r = 1,
                              off.p = 0.5,
                              kappa = 0.25,
                              lambda = 0.25,
@@ -58,9 +58,30 @@ simulateOutbreak <- function(off.r = 1,
 
   }
 
+  if (length(off.r) == 1) {
+
+    off.r <- rep(off.r, ndemes)
+
+  }
+
+  if (length(off.p) == 1) {
+
+    off.p <- rep(off.p, ndemes)
+
+  }
+
+  if (length(pi) == 1) {
+
+    pi <- rep(pi, ndemes)
+
+  }
+
+  pm <- matrix((1 - rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
+  diag(pm) <- rho
+
   if (is.finite(dateT)) {
 
-    ctree <- sim_ongoing_lim_t(off.r = off.r,
+    ctree <- sim_ongoing_multi_lim_t(off.r = off.r,
                                off.p = off.p,
                                kappa = kappa,
                                lambda = lambda,
@@ -78,13 +99,15 @@ simulateOutbreak <- function(off.r = 1,
                                outbreak.start = dateStartOutbreak,
                                obs.start = dateS,
                                obs.end = dateT,
-                               grid.delta = grid.delta)
+                               grid.delta = grid.delta,
+                               ndemes = ndemes,
+                               pm = pm)
 
     ctree$dateT <- dateT
 
   } else if (is.finite(nSampled)) {
 
-    sim <- sim_ongoing_lim_hosts(off.r = off.r,
+    sim <- sim_ongoing_multi_lim_hosts(off.r = off.r,
                                  off.p = off.p,
                                  kappa = kappa,
                                  lambda = lambda,
@@ -102,14 +125,16 @@ simulateOutbreak <- function(off.r = 1,
                                  outbreak.start = dateStartOutbreak,
                                  obs.start = dateS,
                                  grid.delta = grid.delta,
-                                 host.lim = nSampled)
+                                 host.lim = nSampled,
+                                 ndemes = ndemes,
+                                 pm = pm)
 
     ctree <- sim$ctree
     ctree$dateT <- sim$obs.end
 
   } else if (is.finite(nObs)) {
 
-    sim <- sim_ongoing_lim_obs(off.r = off.r,
+    sim <- sim_ongoing_multi_lim_obs(off.r = off.r,
                                off.p = off.p,
                                kappa = kappa,
                                lambda = lambda,
@@ -127,42 +152,12 @@ simulateOutbreak <- function(off.r = 1,
                                outbreak.start = dateStartOutbreak,
                                obs.start = dateS,
                                grid.delta = grid.delta,
-                               obs.lim = nSampled)
+                               obs.lim = nSampled,
+                               ndemes = ndemes,
+                               pm = pm)
 
     ctree <- sim$ctree
     ctree$dateT <- sim$obs.end
-
-  }
-
-  if (ndemes > 1) {
-
-    pm <- matrix((1 - rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
-    diag(pm) <- rho
-
-    ttree <- extractTTree(ctree)
-
-    locations <- numeric(length(ttree$ttree[, 1]))
-
-    todo <- which(ttree$ttree[, 3] == 0)
-    locations[which(ttree$ttree[, 3] == 0)] <- 1
-
-    while (length(todo) > 0) {
-
-      host <- todo[1]
-
-      children <- which(ttree$ttree[, 3] == host)
-
-      locations[children] <- sample(1:ndemes, size = length(children), replace = T, prob = pm[locations[host], ])
-
-      todo <- c(todo, children)
-
-      todo <- todo[-1]
-
-    }
-
-#    obs_hosts <- which(ttree$ttree[, 2] > 0)
-
-    ctree$locations <- locations
 
   }
 
@@ -193,7 +188,7 @@ simulateOutbreak <- function(off.r = 1,
 #' @param obs.start Start time of outbreak sampling
 #' @param obs.end Stop time of outbreak sampling
 #' @param grid.delta Discrete time step
-sim_ongoing_lim_t <- function(off.r = 2,
+sim_ongoing_multi_lim_t <- function(off.r = 2,
                               off.p = 0.5,
                               kappa = 0.2,
                               lambda = 0.2,
@@ -211,7 +206,9 @@ sim_ongoing_lim_t <- function(off.r = 2,
                               outbreak.start = 2000,
                               obs.start = NULL,
                               obs.end = 2010,
-                              grid.delta = 1 / 365) {
+                              grid.delta = 1 / 365,
+                              ndemes = 1,
+                              pm = 1) {
 
   if (!is.null(w.mean) && !is.null(w.std)) {
 
@@ -247,8 +244,8 @@ sim_ongoing_lim_t <- function(off.r = 2,
 
   grid <- seq(obs.end, outbreak.start - grid.delta, by = - grid.delta)
 
-  fn_list <- num_approx_disc(grid, off.r, off.p, pi, w.shape, w.scale,
-                             ws.shape, ws.scale, obs.start, obs.end)
+  fn_list <- num_approx_disc_multi(grid, off.r, off.p, pi, w.shape, w.scale,
+                             ws.shape, ws.scale, obs.start, obs.end, ndemes, pm)
 
   omega <- fn_list$omega
   omega_bar <- fn_list$omega_bar
@@ -260,6 +257,8 @@ sim_ongoing_lim_t <- function(off.r = 2,
 
     ttree <- matrix(0, 1, 3)
 
+    demes <- c(1)
+
     i <- 1
     n <- 1
     t_inf <- outbreak.start
@@ -270,7 +269,7 @@ sim_ongoing_lim_t <- function(off.r = 2,
 
       tidx <- 1 + round((obs.end - t_inf) / grid.delta)
 
-      if (runif(1) < (pit[tidx] / (1 - omega[tidx]))) {
+      if (runif(1) < (pit[tidx, demes[i]] / (1 - omega[tidx, demes[i]]))) {
 
         ttree[i, 2] <- 1
 
@@ -282,11 +281,11 @@ sim_ongoing_lim_t <- function(off.r = 2,
 
       repeat {
 
-        offspring <- rnbinom(1, size = off.r, prob = off.p)
+        offspring <- rnbinom(1, size = off.r[demes[i]], prob = off.p[demes[i]])
 
         if (offspring > 0) {
 
-          offspring_inc <- rbinom(1, size = offspring, prob = 1 - omega_bar[tidx])
+          offspring_inc <- rbinom(1, size = offspring, prob = 1 - omega_bar[tidx, demes[i]])
 
         } else {
 
@@ -307,12 +306,18 @@ sim_ongoing_lim_t <- function(off.r = 2,
 
         ttree <- rbind(ttree, matrix(0, offspring_inc, 3))
 
-        gent <- (gamma_prob[tidx:2] * (1 - omega[1:(tidx - 1)])) / (1 - omega_bar[tidx])
+        for (j in 1:offspring_inc) {
 
-        gent_sam <- sample(1:(tidx - 1), size = offspring_inc, prob = gent, replace = T)
+          demes[n + j] <- sample(1:ndemes, size = 1, prob = pm[demes[i], ])
 
-        ttree[n + 1:offspring_inc, 1] <- grid[gent_sam]
-        ttree[n + 1:offspring_inc, 3] <- i
+          gent <- (gamma_prob[tidx:2] * (1 - omega[1:(tidx - 1), demes[n + j]])) / (1 - omega_bar[tidx, demes[i]])
+
+          gent_sam <- sample(1:(tidx - 1), size = 1, prob = gent)
+
+          ttree[n + j, 1] <- grid[gent_sam]
+          ttree[n + j, 3] <- i
+
+        }
 
         n <- n + offspring_inc
 
@@ -336,6 +341,7 @@ sim_ongoing_lim_t <- function(off.r = 2,
     invord <- 1:length(ord)
     invord[ord] <- 1:length(ord)
     ttree <- ttree[ord, , drop = FALSE]
+    demes <- demes[ord]
     ttree[ttree[, 3] > 0, 3] <- invord[ttree[ttree[, 3] > 0, 3]]
 
     obs <- matrix(0, 0, 2)
@@ -548,7 +554,7 @@ sim_ongoing_lim_t <- function(off.r = 2,
 
   }
 
-  out <- list(ctree = ctree, nam = paste(nam_host, ".", nam_num, sep = ""))
+  out <- list(ctree = ctree, nam = paste(nam_host, ".", nam_num, sep = ""), demes = demes)
   class(out) <- 'ctree'
 
   out <- trim_root(out)
@@ -579,7 +585,7 @@ sim_ongoing_lim_t <- function(off.r = 2,
 #' @param obs.start Start time of outbreak sampling
 #' @param grid.delta Discrete time step
 #' @param obs.lim Maximum number of samples
-sim_ongoing_lim_obs <- function(off.r = 2,
+sim_ongoing_multi_lim_obs <- function(off.r = 2,
                                 off.p = 0.5,
                                 kappa = 0.2,
                                 lambda = 0.2,
@@ -597,7 +603,9 @@ sim_ongoing_lim_obs <- function(off.r = 2,
                                 outbreak.start = 2000,
                                 obs.start = NULL,
                                 grid.delta = 1 / 365,
-                                obs.lim = 100) {
+                                obs.lim = 100,
+                                ndemes,
+                                pm) {
 
 
   if (!is.null(w.mean) && !is.null(w.std)) {
@@ -642,6 +650,7 @@ sim_ongoing_lim_obs <- function(off.r = 2,
     t_lim2 <- Inf
 
     ttree <- matrix(0, 1, 3)
+    demes <- c(1)
     obs <- matrix(0, 0, 2)
 
     i <- 1
@@ -652,7 +661,7 @@ sim_ongoing_lim_obs <- function(off.r = 2,
 
     repeat {
 
-      if (runif(1) < pi) {
+      if (runif(1) < pi[demes[i]]) {
 
         t_sam <- t_inf + rgamma(1, shape = ws.shape, scale = ws.scale)
 
@@ -697,7 +706,7 @@ sim_ongoing_lim_obs <- function(off.r = 2,
 
       }
 
-      offspring <- rnbinom(1, size = off.r, prob = off.p)
+      offspring <- rnbinom(1, size = off.r[demes[i]], prob = off.p[demes[i]])
 
       if (offspring > 0) {
 
@@ -714,6 +723,8 @@ sim_ongoing_lim_obs <- function(off.r = 2,
           ttree[n + 1:offspring_inc, 1] <- off_times
 
           ttree[n + 1:offspring_inc, 3] <- i
+
+          demes[n + 1:offspring_inc] <- sample(1:ndemes, size = offspring_inc, replace = T, prob = pm[demes[i], ])
 
           n <- n + offspring_inc
 
@@ -764,6 +775,8 @@ sim_ongoing_lim_obs <- function(off.r = 2,
 
         ttree <- ttree[-h, , drop = FALSE]
 
+        demes <- demes[-h]
+
         ttree[which(ttree[, 3] > h), 3] <- ttree[which(ttree[, 3] > h), 3] - 1
 
         obs[which(obs[, 2] > h), 2] <- obs[which(obs[, 2] > h), 2] - 1
@@ -778,6 +791,7 @@ sim_ongoing_lim_obs <- function(off.r = 2,
     invord <- 1:length(ord)
     invord[ord] <- 1:length(ord)
     ttree <- ttree[ord, , drop = FALSE]
+    demes <- demes[ord]
     ttree[ttree[, 3] > 0, 3] <- invord[ttree[ttree[, 3] > 0, 3]]
     obs[, 2] <- invord[obs[, 2]]
 
@@ -958,7 +972,7 @@ sim_ongoing_lim_obs <- function(off.r = 2,
 
   }
 
-  l <- list(ctree = ctree, nam = paste(nam_host, ".", nam_num, sep = ""))
+  l <- list(ctree = ctree, nam = paste(nam_host, ".", nam_num, sep = ""), demes = demes)
   class(l) <- 'ctree'
 
   l <- trim_root(l)
@@ -990,7 +1004,7 @@ sim_ongoing_lim_obs <- function(off.r = 2,
 #' @param obs.start Start time of outbreak sampling
 #' @param grid.delta Discrete time step
 #' @param host.lim Number of sampled hosts
-sim_ongoing_lim_hosts <- function(off.r = 2,
+sim_ongoing_multi_lim_hosts <- function(off.r = 2,
                                   off.p = 0.5,
                                   kappa = 0.2,
                                   lambda = 0.2,
@@ -1008,7 +1022,9 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
                                   outbreak.start = 2000,
                                   obs.start = NULL,
                                   grid.delta = 1 / 365,
-                                  host.lim = 200) {
+                                  host.lim = 200,
+                                  ndemes,
+                                  pm) {
 
 
   if (!is.null(w.mean) && !is.null(w.std)) {
@@ -1053,6 +1069,7 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
     t_lim2 <- Inf
 
     ttree <- matrix(0,1,3)
+    demes <- c(1)
     obs <- matrix(0, 0, 2)
 
     prim_host <- c()
@@ -1067,7 +1084,7 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
 
     repeat {
 
-      if (runif(1) < pi) {
+      if (runif(1) < pi[demes[i]]) {
 
         t_sam <- t_inf + rgamma(1, shape = ws.shape, scale = ws.scale)
 
@@ -1111,7 +1128,7 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
 
       }
 
-      offspring <- rnbinom(1, size = off.r, prob = off.p)
+      offspring <- rnbinom(1, size = off.r[demes[i]], prob = off.p[demes[i]])
 
       if (offspring > 0) {
 
@@ -1128,6 +1145,8 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
           ttree[n + 1:offspring_inc, 1] <- off_times
 
           ttree[n + 1:offspring_inc, 3] <- i
+
+          demes[n + 1:offspring_inc] <- sample(1:ndemes, replace = T, size = offspring_inc, prob = pm[demes[i], ])
 
           n <- n + offspring_inc
 
@@ -1180,6 +1199,8 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
 
         ttree <- ttree[-h, , drop = FALSE]
 
+        demes <- demes[-h]
+
         ttree[which(ttree[, 3] > h), 3] <- ttree[which(ttree[, 3] > h), 3] - 1
 
         obs[which(obs[, 2] > h), 2] <- obs[which(obs[, 2] > h), 2] - 1
@@ -1194,6 +1215,7 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
     invord <- 1:length(ord)
     invord[ord] <- 1:length(ord)
     ttree <- ttree[ord, , drop=FALSE]
+    demes <- demes[ord]
     ttree[ttree[, 3] > 0, 3] <- invord[ttree[ttree[, 3] > 0, 3]]
     obs[, 2] <- invord[obs[, 2]]
 
@@ -1374,7 +1396,7 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
 
   }
 
-  l <- list(ctree = ctree, nam = paste(nam_host, ".", nam_num, sep = ""))
+  l <- list(ctree = ctree, nam = paste(nam_host, ".", nam_num, sep = ""), demes = demes)
   class(l) <- 'ctree'
 
   l <- trim_root(l)
@@ -1382,4 +1404,3 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
   return(list(ctree = l, obs.end = 0.5 * (t_lim1 + t_lim2), attempts = attempts))
 
 }
-
