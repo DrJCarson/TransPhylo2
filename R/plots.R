@@ -351,9 +351,9 @@ plotCTree = function(tree,showLabels=TRUE,showStars=TRUE,cols=NA,maxTime=NA,cex=
 #' @param maxTime Maximum time to show on the x axis
 #' @param cex Expansion factor
 #' @export
-plotLocsCTree = function(tree,showLabels=TRUE,showStars=TRUE,cols=NA,maxTime=NA,cex=1)  {
+plotdemesCTree = function(tree,showLabels=TRUE,showStars=TRUE,cols=NA,maxTime=NA,cex=1)  {
   nam=tree$nam
-  locations=tree$locations
+  demes=tree$demes
   tree=tree$ctree
   nsam <- sum(tree[ ,2]+tree[ ,3] == 0)
   nh <- nrow(tree)-3*nsam+1
@@ -364,7 +364,7 @@ plotLocsCTree = function(tree,showLabels=TRUE,showStars=TRUE,cols=NA,maxTime=NA,
   plot(0,0,type='l',xlim=c(min(tree[,1]),ifelse(is.na(maxTime),max(tree[,1]),maxTime)),ylim=c(0,nsam+1),xlab='',ylab='')
   host <- tree[ ,4]
   if (ntot>1) {
-    if (is.na(cols[1])) grDevices::palette(grDevices::rainbow(min(1024,length(unique(locations)))))#Need as many unique colors as there are hosts. If there are more than 1024 hosts, colors are recycled.
+    if (is.na(cols[1])) grDevices::palette(grDevices::rainbow(min(1024,length(unique(demes)))))#Need as many unique colors as there are hosts. If there are more than 1024 hosts, colors are recycled.
     else grDevices::palette(cols)
   }
 
@@ -409,15 +409,15 @@ plotLocsCTree = function(tree,showLabels=TRUE,showStars=TRUE,cols=NA,maxTime=NA,
     y <- ys[w]
 
 
-  if (length(locations[host[w]]) > 0) {
+  if (length(demes[host[w]]) > 0) {
 
-      if (is.na(locations[host[w]])) {
+      if (is.na(demes[host[w]])) {
 
         col = 'grey80'
 
       } else {
 
-        col=locations[host[w]]
+        col=demes[host[w]]
 
       }
 
@@ -452,15 +452,15 @@ plotLocsCTree = function(tree,showLabels=TRUE,showStars=TRUE,cols=NA,maxTime=NA,
     y <- ys[w]
 
 
-  if (length(locations[host[w]]) > 0) {
+  if (length(demes[host[w]]) > 0) {
 
-      if (is.na(locations[host[w]])) {
+      if (is.na(demes[host[w]])) {
 
         col = 'grey80'
 
       } else {
 
-        col=locations[host[w]]
+        col=demes[host[w]]
 
       }
 

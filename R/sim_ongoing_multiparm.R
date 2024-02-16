@@ -152,7 +152,7 @@ simulateOutbreakmulti <- function(off.r = 1,
                                outbreak.start = dateStartOutbreak,
                                obs.start = dateS,
                                grid.delta = grid.delta,
-                               obs.lim = nSampled,
+                               obs.lim = nObs,
                                ndemes = ndemes,
                                pm = pm)
 
@@ -558,6 +558,8 @@ sim_ongoing_multi_lim_t <- function(off.r = 2,
   class(out) <- 'ctree'
 
   out <- trim_root(out)
+
+  out$demes <- demes
 
   return(out)
 
@@ -976,6 +978,8 @@ sim_ongoing_multi_lim_obs <- function(off.r = 2,
   class(l) <- 'ctree'
 
   l <- trim_root(l)
+
+  l$demes <- demes
 
   return(list(ctree = l, obs.end = 0.5 * (t_lim1 + t_lim2), attempts = attempts))
 
@@ -1400,6 +1404,8 @@ sim_ongoing_multi_lim_hosts <- function(off.r = 2,
   class(l) <- 'ctree'
 
   l <- trim_root(l)
+
+  l$demes <- demes
 
   return(list(ctree = l, obs.end = 0.5 * (t_lim1 + t_lim2), attempts = attempts))
 
