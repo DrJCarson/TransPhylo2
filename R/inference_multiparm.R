@@ -27,11 +27,7 @@
 #' @param update.lambda Whether to update the parameter lambda
 #' @param update.rho Whether to update parameter rho
 #' @param update.ctree Whether to update the transmission tree
-<<<<<<< HEAD
 #' @param ndemes Number of possible locations
-=======
-#' @param nLocs Number of possible locations
->>>>>>> ae4a332a97ee90de52cd656b6392c52a94d432f9
 #' @param r.shape Shape parameter for the Gamma prior of parameter r
 #' @param r.scale Scale parameter for the Gamma prior of parameter r
 #' @param p.shape1 Shape1 parameter for the Beta prior of parameter p
@@ -51,61 +47,54 @@
 #' @param verbose Whether or not to use verbose mode (default is false)
 #' @export
 inferTTreemulti <- function(ptree,
-                       w.shape = 2,
-                       w.scale = 1,
-                       ws.shape = NA,
-                       ws.scale = NA,
-                       w.mean = NA,
-                       w.std = NA,
-                       ws.mean = NA,
-                       ws.std = NA,
-                       mcmcIterations = 12000,
-                       thinning = 1,
-                       mcmc.tree.updates = NA,
-                       mcmc.cov.tr = NA,
-                       mcmc.cov.coa = NA,
-                       init.r = 2,
-                       init.p = 0.5,
-                       init.pi = 0.5,
-                       init.kappa = 0.5,
-                       init.lambda = 0.5,
-                       init.rho = 0.8,
-                       init.ctree = NA,
-                       update.r = T,
-                       update.p = F,
-                       update.pi = T,
-                       update.kappa = T,
-                       update.lambda = T,
-                       update.rho = F,
-                       update.ctree = T,
-<<<<<<< HEAD
-                       ndemes = NA,
-=======
-                       nLocs = NA,
->>>>>>> ae4a332a97ee90de52cd656b6392c52a94d432f9
-                       r.shape = 1,
-                       r.scale = 1,
-                       p.shape1 = 1,
-                       p.shape2 = 1,
-                       pi.shape1 = 1,
-                       pi.shape2 = 1,
-                       kappa.shape = 1,
-                       kappa.scale = 1,
-                       lambda.shape = 1,
-                       lambda.scale = 1,
-                       rho.shape1 = 1,
-                       rho.shape2 = 1,
-                       locs.prior = NA,
-                       dateS = -Inf,
-                       dateT = NA,
-                       grid.delta = NA,
-<<<<<<< HEAD
-                       tr.demes = NA,
-                       pi.demes = NA,
-                       rho.demes = NA,
-=======
->>>>>>> ae4a332a97ee90de52cd656b6392c52a94d432f9
-                       verbose = F) {
+                            w.shape = 2,
+                            w.scale = 1,
+                            ws.shape = NA,
+                            ws.scale = NA,
+                            w.mean = NA,
+                            w.std = NA,
+                            ws.mean = NA,
+                            ws.std = NA,
+                            mcmcIterations = 12000,
+                            thinning = 1,
+                            mcmc.tree.updates = NA,
+                            mcmc.cov.tr = NA,
+                            mcmc.cov.coa = NA,
+                            init.r = 2,
+                            init.p = 0.5,
+                            init.pi = 0.5,
+                            init.kappa = 0.5,
+                            init.lambda = 0.5,
+                            init.rho = 0.8,
+                            init.ctree = NA,
+                            update.r = T,
+                            update.p = F,
+                            update.pi = T,
+                            update.kappa = T,
+                            update.lambda = T,
+                            update.rho = F,
+                            update.ctree = T,
+                            ndemes = NA,
+                            r.shape = 1,
+                            r.scale = 1,
+                            p.shape1 = 1,
+                            p.shape2 = 1,
+                            pi.shape1 = 1,
+                            pi.shape2 = 1,
+                            kappa.shape = 1,
+                            kappa.scale = 1,
+                            lambda.shape = 1,
+                            lambda.scale = 1,
+                            rho.shape1 = 1,
+                            rho.shape2 = 1,
+                            locs.prior = NA,
+                            dateS = -Inf,
+                            dateT = NA,
+                            grid.delta = NA,
+                            tr.demes = NA,
+                            pi.demes = NA,
+                            rho.demes = NA,
+                            verbose = F) {
 
   # Ensure that all leaves have unique times
   ptree$ptree[, 1] <- ptree$ptree[, 1] + runif(nrow(ptree$ptree)) * 1e-10
@@ -129,11 +118,7 @@ inferTTreemulti <- function(ptree,
   prim_obs_times <- calc_prim_obs(ptree)
 
   # Check that locations are given if updating rho
-<<<<<<< HEAD
   if (length(ptree$demes) == 0 & update.rho) {
-=======
-  if (length(ptree$locations) == 0 & update.rho) {
->>>>>>> ae4a332a97ee90de52cd656b6392c52a94d432f9
 
     stop('Locations are needed in ptree to update parameter rho')
 
@@ -227,7 +212,6 @@ inferTTreemulti <- function(ptree,
 
   const.pi <- 3.14159265359
 
-<<<<<<< HEAD
   if (is.na(ndemes)) {
 
     ndemes <- max(ptree$demes)
@@ -309,8 +293,6 @@ inferTTreemulti <- function(ptree,
 
 
 
-=======
->>>>>>> ae4a332a97ee90de52cd656b6392c52a94d432f9
   parms.init.tr <- c(r = init.r,
                      p = init.p,
                      pi = init.pi)
@@ -378,7 +360,6 @@ inferTTreemulti <- function(ptree,
 
   pPTree <- log_lik_ptree_given_ctree(ctree, init.kappa, init.lambda, NA)
 
-<<<<<<< HEAD
 
 
 
@@ -393,24 +374,6 @@ inferTTreemulti <- function(ptree,
   if (update.rho) {
 
 
-=======
-  if (update.rho) {
-
-    if (is.na(nLocs)) {
-
-      nLocs <- max(ptree$locations)
-
-    }
-
-    if (is.na(locs.prior)) {
-
-      locs.prior <- rep(1 / nLocs, nLocs)
-
-    }
-
-    pm <- matrix((1 - parms.curr.rho) / (nLocs - 1), nrow = nLocs, ncol = nLocs)
-    diag(pm) <- parms.curr.rho
->>>>>>> ae4a332a97ee90de52cd656b6392c52a94d432f9
 
     pLocs <- log_lik_locs_felsenstein(ttree, pm, locs.prior)
 
@@ -750,11 +713,7 @@ inferTTreemulti <- function(ptree,
 
       if (parms.prop.rho >= 0 & parms.prop.rho <= 1) {
 
-<<<<<<< HEAD
         pm2 <- matrix((1 - parms.prop.rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
-=======
-        pm2 <- matrix((1 - parms.prop.rho) / (nLocs - 1), nrow = nLocs, ncol = nLocs)
->>>>>>> ae4a332a97ee90de52cd656b6392c52a94d432f9
         diag(pm2) <- parms.prop.rho
 
         pLocs2 <- log_lik_locs_felsenstein(ttree, pm2, locs.prior)
