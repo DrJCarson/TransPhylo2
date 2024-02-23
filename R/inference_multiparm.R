@@ -40,7 +40,7 @@
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
 #' @param rho.shape1 Shape1 parameter for the Beta prior of parameter rho
 #' @param rho.shape2 Shape2 parameter for the Beta prior of parameter rho
-#' @param locs.prior Prior probability for the location of the root host
+#' @param demes.prior Prior probability for the location of the root host
 #' @param dateS Start date for observations
 #' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
@@ -87,7 +87,7 @@ inferTTreemulti <- function(ptree,
                             lambda.scale = 1,
                             rho.shape1 = 1,
                             rho.shape2 = 1,
-                            locs.prior = NA,
+                            demes.prior = NA,
                             dateS = -Inf,
                             dateT = NA,
                             grid.delta = NA,
@@ -218,9 +218,9 @@ inferTTreemulti <- function(ptree,
 
   }
 
-  if (is.na(locs.prior)) {
+  if (is.na(demes.prior)) {
 
-    locs.prior <- rep(1 / ndemes, ndemes)
+    demes.prior <- rep(1 / ndemes, ndemes)
 
   }
 
@@ -375,7 +375,7 @@ inferTTreemulti <- function(ptree,
 
 
 
-    pLocs <- log_lik_locs_felsenstein(ttree, pm, locs.prior)
+    pLocs <- log_lik_locs_felsenstein(ttree, pm, demes.prior)
 
   }
 
@@ -456,7 +456,7 @@ inferTTreemulti <- function(ptree,
 
           if (update.rho) {
 
-            pLocs2 <- log_lik_locs_felsenstein(ttree2, pm, locs.prior)
+            pLocs2 <- log_lik_locs_felsenstein(ttree2, pm, demes.prior)
 
             pLocs_diff <- pLocs2 - pLocs
 
@@ -716,7 +716,7 @@ inferTTreemulti <- function(ptree,
         pm2 <- matrix((1 - parms.prop.rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
         diag(pm2) <- parms.prop.rho
 
-        pLocs2 <- log_lik_locs_felsenstein(ttree, pm2, locs.prior)
+        pLocs2 <- log_lik_locs_felsenstein(ttree, pm2, demes.prior)
 
         ss.alpha.rho <- (pLocs2 - pLocs) +
           (dbeta(parms.prop.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
