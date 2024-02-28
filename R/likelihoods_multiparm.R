@@ -243,6 +243,169 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
   log_likelihood <- log(sum(demes.prior * dyn_L[root_host, ]))
 
-  return(log_likelihood)
+  return(list(loglik = log_likelihood, dyn_L = dyn_L))
 
 }
+
+#' Calculate transmission tree likelihood
+#'
+#' @param ttree Transmission tree
+#' @param grid Discrete grid over which to evaluate functions
+#' @param fn_list Precalculated discrete approximations of exclusion probabilities
+#' @param off.r Shape parameter for the number of offspring
+#' @param off.p Probability parameter for the number of offspring
+#' @param pi Probability of host being sampled
+#' @param w.shape Shape parameter of generation time distribution
+#' @param w.scale Scale parameter of generation time distribution
+#' @param ws.shape Shape parameter of primary sampling time distribution
+#' @param ws.scale Scale parameter of primary sampling time distribution
+#' @param obs.start Start time of outbreak sampling
+#' @param obs.end Stop time of outbreak sampling
+#' @param grid.delta Discrete time step
+#' @param hosts Hosts over which likelihood is calculated
+log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi, w.shape, w.scale, ws.shape,
+                                    ws.scale, obs.start, obs.end, grid.delta = 1 / 365, ndemes, pm, demes.prior,
+                                    dyn_L, hosts) {
+
+
+  obs <- ttree$obs
+  demes <- ttree$demes
+  ttree <- ttree$ttree
+
+  omega <- fn_list$omega
+  omega_bar <- fn_list$omega_bar
+  pit <- fn_list$pit
+  gamma_prob <- fn_list$gamma_prob
+
+  nhosts <- length(ttree[, 1])
+
+  dyn_L_2 <- array(0, dim = c(nhosts, ndemes))
+
+  host_order <- order(ttree[, 1], decreasing = T)
+
+  for (i in host_order) {
+
+    # Leaf
+    if (length(which(ttree[, 3] == i)) == 0) {
+
+      if (!is.na(demes[i])) {
+
+        if (demes[i] > 0) {
+
+          dyn_L_2[i, demes[i]] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
+                                      ws.scale, obs.start, obs.end, grid.delta, i, demes[i])
+
+        } else {
+
+          for (d in 1:ndemes) {
+
+            dyn_L_2[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
+                                 ws.scale, obs.start, obs.end, grid.delta, i, d)
+
+          }
+
+        }
+
+      } else {
+
+        for (d in 1:ndemes) {
+
+          dyn_L_2[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
+                               ws.scale, obs.start, obs.end, grid.delta, i, d)
+
+        }
+
+      }
+
+      # Not a leaf
+    } else {
+
+      children <- which(ttree[, 3] == i)
+
+      if (!is.na(demes[i])) {
+
+        if (demes[i] > 0) {
+
+          dyn_L_2[i, demes[i]] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
+                                      ws.scale, obs.start, obs.end, grid.delta, i, demes[i])
+
+          for (j in children) {
+
+            sum_ul <- 0
+
+            for (d2 in 1:ndemes) {
+
+              sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) *
+                dyn_L_2[j, d2]
+
+            }
+
+            dyn_L_2[i, demes[i]] <- dyn_L_2[i, demes[i]] * sum_ul
+
+          }
+
+        } else {
+
+          for (d in 1:ndemes) {
+
+            dyn_L_2[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
+                                 ws.scale, obs.start, obs.end, grid.delta, i, d)
+
+            for (j in children) {
+
+              sum_ul <- 0
+
+              for (d2 in 1:ndemes) {
+
+                sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) *
+                  dyn_L_2[j, d2]
+
+              }
+
+              dyn_L_2[i, d] <- dyn_L_2[i, d] * sum_ul
+
+            }
+
+          }
+
+        }
+
+      } else {
+
+        for (d in 1:ndemes) {
+
+          dyn_L_2[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
+                               ws.scale, obs.start, obs.end, grid.delta, i, d)
+
+          for (j in children) {
+
+            sum_ul <- 0
+
+            for (d2 in 1:ndemes) {
+
+              sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) *
+                dyn_L_2[j, d2]
+
+            }
+
+            dyn_L_2[i, d] <- dyn_L_2[i, d] * sum_ul
+
+          }
+
+        }
+
+      }
+
+
+    }
+
+  }
+
+  root_host <- host_order[length(host_order)]
+
+  log_likelihood <- log(sum(demes.prior * dyn_L_2[root_host, ]))
+
+  return(list(loglik = log_likelihood, dyn_L = dyn_L_2))
+
+}
+
