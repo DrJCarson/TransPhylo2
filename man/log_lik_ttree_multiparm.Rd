@@ -17,7 +17,7 @@ log_lik_ttree_multiparm(
   ws.scale,
   obs.start,
   obs.end,
-  grid.delta = 1/365,
+  grid.delta,
   ndemes,
   pm,
   demes.prior
