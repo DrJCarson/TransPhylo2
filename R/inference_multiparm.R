@@ -177,23 +177,6 @@ inferTTreemulti <- function(ptree,
 
   }
 
-  if (is.na(sum(mcmc.cov.tr))) {
-
-    mcmc.cov.tr <- diag(c(0.5 ^ 2 * as.numeric(update.r),
-                          0.25 ^ 2 * as.numeric(update.p),
-                          0.25 ^ 2 * as.numeric(update.pi)))
-
-  }
-
-  if (is.na(sum(mcmc.cov.coa))) {
-
-    mcmc.cov.coa <- diag(c(0.1 ^ 2 * as.numeric(update.kappa),
-                           0.1 ^ 2 * as.numeric(update.lambda)))
-
-  }
-
-  mcmc.cov.rho <- 0.1 ^ 2 * as.numeric(update.rho)
-
   if (sum(is.na(init.ctree))) {
 
     ctree <- init_ctree(ptree)
@@ -248,6 +231,8 @@ inferTTreemulti <- function(ptree,
 
   rho.dim <- length(unique(rho.demes))
 
+  max.dim <- max(c(tr.dim, pi.dim, rho.dim))
+
   if (length(init.r) == 1) {
 
     init.r <- rep(init.r, tr.dim)
@@ -273,61 +258,99 @@ inferTTreemulti <- function(ptree,
   }
 
 
+#  if (is.na(sum(mcmc.cov.tr))) {
+
+#    mcmc.cov.tr <- diag(c(0.5 ^ 2 * as.numeric(update.r),
+#                          0.25 ^ 2 * as.numeric(update.p),
+#                          0.25 ^ 2 * as.numeric(update.pi)),
+#                          0.25 ^ 2 * as.numeric(update.rho))
+
+#  }
+
+#  if (is.na(sum(mcmc.cov.coa))) {
+
+#    mcmc.cov.coa <- diag(c(0.1 ^ 2 * as.numeric(update.kappa),
+#                           0.1 ^ 2 * as.numeric(update.lambda)))
+
+#  }
 
 
 
+  parms.init.tr <- array(NA, dim = c(4, max.dim),
+                         dimnames = list(c("r", "p", "pi", "rho"), NULL))
 
+  parms.init.tr["r", 1:tr.dim] <- init.r
+  parms.init.tr["p", 1:tr.dim] <- init.p
+  parms.init.tr["pi", 1:pi.dim] <- init.pi
+  parms.init.tr["rho", 1:rho.dim] <- init.rho
 
-
-
-
-
-
-  pm <- matrix((1 - parms.curr.rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
-  diag(pm) <- parms.curr.rho
-
-
-
-
-
-
-
-
-  parms.init.tr <- c(r = init.r,
-                     p = init.p,
-                     pi = init.pi)
   parms.init.coa <- c(kappa = init.kappa,
                       lambda = init.lambda)
-  parms.init.rho <- init.rho
 
   parms.curr.tr <- parms.init.tr
   parms.curr.coa <- parms.init.coa
-  parms.curr.rho <- parms.init.rho
+
+
+  if (is.na(sum(mcmc.cov.tr))) {
+
+    mcmc.cov.tr <- list()
+
+    for (i in 1:max.dim) {
+
+      mcmc.cov.tr[[i]] <- diag(c(0.5 ^ 2 * as.numeric(update.r) * as.numeric(!is.na(parms.init.tr["r", i])),
+                                 0.25 ^ 2 * as.numeric(update.p) * as.numeric(!is.na(parms.init.tr["p", i])),
+                                 0.25 ^ 2 * as.numeric(update.pi) * as.numeric(!is.na(parms.init.tr["pi", i])),
+                               0.25 ^ 2 * as.numeric(update.rho) * as.numeric(!is.na(parms.init.tr["rho", i]))))
+
+    }
+
+  }
+
+  if (is.na(sum(mcmc.cov.coa))) {
+
+    mcmc.cov.coa <- diag(c(0.1 ^ 2 * as.numeric(update.kappa),
+                           0.1 ^ 2 * as.numeric(update.lambda)))
+
+  }
 
   ss.a <- 0.234
 
-  update.tr <- c(update.r, update.p, update.pi)
+  update.tr <- c(update.r, update.p, update.pi, update.rho)
   update.coa <- c(update.kappa, update.lambda)
 
-  ss.d.tr <- sum(as.numeric(update.tr))
+  ss.d.tr <- numeric(max.dim)
+
+  for (i in 1:max.dim) {
+
+    ss.d.tr[i] <- as.numeric(update.r) * as.numeric(!is.na(parms.init.tr["r", i])) +
+      as.numeric(update.p) * as.numeric(!is.na(parms.init.tr["p", i])) +
+      as.numeric(update.pi) * as.numeric(!is.na(parms.init.tr["pi", i])) +
+      as.numeric(update.rho) * as.numeric(!is.na(parms.init.tr["rho", i]))
+
+  }
+
   ss.d.coa <- sum(as.numeric(update.coa))
-  ss.d.rho <- sum(as.numeric(update.rho))
 
   ss.v0.tr <- ss.d.tr
   ss.v0.coa <- ss.d.coa
-  ss.v0.rho <- ss.d.rho
 
   ss.f <- floor(0.5 * (1:mcmcIterations))
 
   ss.min <- 0.1
 
-  ss.c.tr <- 2.38 ^ 2 / ss.d.tr
+  ss.c.tr <- numeric(max.dim)
+
+  for (i in 1:max.dim) {
+
+    ss.c.tr[i] <- 2.38 ^ 2 / ss.d.tr[i]
+
+  }
+
   ss.c.coa <- 2.38 ^ 2 / ss.d.coa
-  ss.c.rho <- 2.38 ^ 2 / ss.d.rho
 
   ss.lamstart <- 1
 
-  ss.lam.tr <- ss.lamstart
+  ss.lam.tr <- rep(ss.lamstart, max.dim)
   ss.lam.coa <- ss.lamstart
   ss.lam.rho <- ss.lamstart
 
@@ -335,49 +358,57 @@ inferTTreemulti <- function(ptree,
 
   ss.A <- -qnorm(ss.a / 2)
 
-  ss.del.tr <- (1 - (1 / ss.d.tr)) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.tr * ss.a * (1 - ss.a)))
+  ss.del.tr <- numeric(max.dim)
+
+  for (i in 1:max.dim) {
+
+    ss.del.tr[i] <- (1 - (1 / ss.d.tr[i])) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.tr[i] * ss.a * (1 - ss.a)))
+
+  }
+
   ss.del.coa <- (1 - (1 / ss.d.coa)) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.coa * ss.a * (1 - ss.a)))
-  ss.del.rho <- (1 - (1 / ss.d.rho)) * ((sqrt(2 * const.pi) * exp(ss.A ^ 2 / 2)) / (2 * ss.A)) + (1 / (ss.d.rho * ss.a * (1 - ss.a)))
 
   ttree <- extractTTree(ctree)
 
   record <- vector('list', mcmcIterations / thinning)
 
-  trace.r <- numeric(mcmcIterations)
-  trace.p <- numeric(mcmcIterations)
-  trace.pi <- numeric(mcmcIterations)
+  trace.r <- array(dim = c(mcmcIterations, tr.dim))
+  trace.p <- array(dim = c(mcmcIterations, tr.dim))
+  trace.pi <- array(dim = c(mcmcIterations, pi.dim))
+  trace.rho <- array(dim = c(mcmcIterations, rho.dim))
+
   trace.kappa <- numeric(mcmcIterations)
   trace.lambda <- numeric(mcmcIterations)
-  trace.rho <- numeric(mcmcIterations)
 
   grid <- seq(dateT, min(ttree$ttree[, 1]) - 0.5 * 1 - grid.delta, by = - grid.delta)
 
-  fn_list <- num_approx_disc(grid, init.r, init.p, init.pi, w.shape, w.scale,
-                             ws.shape, ws.scale, dateS, dateT)
+  ext.r <- init.r[tr.demes]
+  ext.p <- init.p[tr.demes]
+  ext.pi <- init.pi[pi.demes]
 
-  pTTree <- log_lik_ttree(ttree, grid, fn_list, init.r, init.p, init.pi, w.shape, w.scale,
-                          ws.shape, ws.scale, dateS, dateT, grid.delta, NA)
+  ext.rho <- init.rho[rho.demes]
+
+  pm <- matrix(0, nrow = ndemes, ncol = ndemes)
+
+  for (i in 1:ndemes) {
+
+    pm[i, ] <- (1 - ext.rho[i]) / (ndemes - 1)
+
+    pm[i, i] <- ext.rho[i]
+
+  }
+
+  fn_list <- num_approx_disc_multi(grid, ext.r, ext.p, ext.pi, w.shape, w.scale,
+                             ws.shape, ws.scale, dateS, dateT, ndemes, pm)
+
+  llt_out <- log_lik_ttree_multiparm(ttree, grid, fn_list, ext.r, ext.p, ext.pi, w.shape, w.scale, ws.shape,
+                                      ws.scale, dateS, dateT, grid.delta, ndemes, pm, demes.prior)
+
+  pTTree <- llt_out$loglik
+  dyn_L <- llt_out$dyn_L
 
   pPTree <- log_lik_ptree_given_ctree(ctree, init.kappa, init.lambda, NA)
 
-
-
-
-
-
-
-
-
-
-
-
-  if (update.rho) {
-
-
-
-    pLocs <- log_lik_locs_felsenstein(ttree, pm, demes.prior)
-
-  }
 
   if (verbose == F) {
 
@@ -396,6 +427,18 @@ inferTTreemulti <- function(ptree,
   tree_acc_rates <- c("add" = 0,
                       "remove" = 0,
                       "move" = 0)
+
+
+
+
+
+
+
+
+
+
+
+
 
   for (i in 1:mcmcIterations) {
 
