@@ -428,18 +428,6 @@ inferTTreemulti <- function(ptree,
                       "remove" = 0,
                       "move" = 0)
 
-
-
-
-
-
-
-
-
-
-
-
-
   for (i in 1:mcmcIterations) {
 
     if (update.ctree) {
@@ -467,11 +455,20 @@ inferTTreemulti <- function(ptree,
           prop_type <- 1
           tree_prop_count["add"] <- tree_prop_count["add"] + 1
 
+          host_map <- test_rem$host_map
+
+          inv_host_map <- rep(NA, length(host_map) + 1)
+          inv_host_map[(1:(length(host_map) + 1)) %in% host_map] <- order(host_map, na.last = NA)
+
         } else if (u < 2 / 3) {
 
           proptree <- remove_transmission(ctree = ctree)
           prop_type <- 2
           tree_prop_count["remove"] <- tree_prop_count["remove"] + 1
+
+          host_map <- proptree$host_map
+
+          inv_host_map <- order(host_map, na.last = NA)
 
         } else {
 
@@ -479,7 +476,13 @@ inferTTreemulti <- function(ptree,
           prop_type <- 3
           tree_prop_count["move"] <- tree_prop_count["move"] + 1
 
+          host_map <- test_rem$host_map
+
+          inv_host_map <- order(host_map, na.last = NA)
+
         }
+
+
 
         if (proptree$is_possible == 1) {
 
@@ -487,43 +490,31 @@ inferTTreemulti <- function(ptree,
 
           ttree2 <- extractTTree(ctree2)
 
-          pTTree_part <- log_lik_ttree(ttree, grid, fn_list, parms.curr.tr[["r"]], parms.curr.tr[["p"]], parms.curr.tr[["pi"]], w.shape, w.scale, ws.shape,
-                                       ws.scale, dateS, dateT, grid.delta, proptree$curr_hosts)
 
-          pTTree_part2 <- log_lik_ttree(ttree2, grid, fn_list, parms.curr.tr[["r"]], parms.curr.tr[["p"]], parms.curr.tr[["pi"]], w.shape, w.scale, ws.shape,
-                                        ws.scale, dateS, dateT, grid.delta, proptree$prop_hosts)
+          dyn_L2 <- dyn_L[inv_host_map, ]
+
+          llt_out2 <- log_lik_ttree_multiparm_part(ttree2, grid, fn_list, ext.r, ext.p, ext.pi, w.shape, w.scale, ws.shape,
+                                                               ws.scale, dateS, dateT, grid.delta, ndemes, pm, demes.prior,
+                                                               dyn_L2, proptree$prop_hosts)
+
+          pTTree2 <- llt_out2$log_lik
+
+          dyn_L2 <- llt_out2$dyn_L
 
           pPTree_part <- log_lik_ptree_given_ctree(ctree, parms.curr.coa[["kappa"]], parms.curr.coa[["lambda"]], proptree$curr_hosts)
 
           pPTree_part2 <- log_lik_ptree_given_ctree(ctree2, parms.curr.coa[["kappa"]], parms.curr.coa[["lambda"]], proptree$prop_hosts)
 
-          if (update.rho) {
-
-            pLocs2 <- log_lik_locs_felsenstein(ttree2, pm, demes.prior)
-
-            pLocs_diff <- pLocs2 - pLocs
-
-          } else {
-
-            pLocs_diff <- 0
-
-          }
 
 
-          if (log(runif(1)) < (pTTree_part2 + pPTree_part2 + proptree$rev_density -
-                               pTTree_part - pPTree_part - proptree$prop_density +
-                               pLocs_diff)) {
+          if (log(runif(1)) < (pTTree2 + pPTree_part2 + proptree$rev_density -
+                               pTTree - pPTree_part - proptree$prop_density)) {
 
             ctree <- ctree2
             ttree <- ttree2
+            dyn_L <- dyn_L2
 
-            if (update.rho) {
-
-              pLocs <- pLocs2
-
-            }
-
-            pTTree <- pTTree + pTTree_part2 - pTTree_part
+            pTTree <- pTTree2
             pPTree <- pPTree + pPTree_part2 - pPTree_part
 
             if (prop_type == 1) {
@@ -544,8 +535,8 @@ inferTTreemulti <- function(ptree,
 
               grid <- seq(dateT, min(ttree$ttree[, 1]) - 0.5 * 1 - grid.delta, by = - grid.delta)
 
-              fn_list <- num_approx_disc(grid, parms.curr.tr[["r"]], parms.curr.tr[["p"]], parms.curr.tr[["pi"]], w.shape, w.scale,
-                                         ws.shape, ws.scale, dateS, dateT)
+              fn_list <- num_approx_disc_multi(grid, ext.r, ext.p, ext.pi, w.shape, w.scale,
+                                               ws.shape, ws.scale, dateS, dateT, ndemes, pm)
 
             }
 
