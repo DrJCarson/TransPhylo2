@@ -438,6 +438,12 @@ inferTTreemulti <- function(ptree,
 
       }
 
+
+      #############################
+      ## Make sure parms are correct
+      #############################
+
+
       tree_prop_count["add"] <- 0
       tree_prop_count["remove"] <- 0
       tree_prop_count["move"] <- 0
@@ -559,98 +565,146 @@ inferTTreemulti <- function(ptree,
 
     }
 
-    if (ss.d.tr > 0) {
+    for (k in 1:max.dim) {
 
-      parms.prop.tr <- MASS::mvrnorm(1, mu = parms.curr.tr, Sigma = ss.lam.tr * ss.c.tr * mcmc.cov.tr)
+      if (ss.d.tr[k] > 0) {
 
-      ss.u.tr <- log(runif(1))
+        parms.prop.tr <- MASS::mvrnorm(1, mu = parms.curr.tr[, k], Sigma = ss.lam.tr[k] * ss.c.tr[k] * mcmc.cov.tr[[k]])
 
-      if (parms.prop.tr["r"] > 0 & parms.prop.tr["p"] > 0 & parms.prop.tr["p"] <= 1 &
-          parms.prop.tr["pi"] > 0 & parms.prop.tr["pi"] <= 1) {
+        ss.u.tr <- log(runif(1))
 
-        fn_list2 <- num_approx_disc(grid, parms.prop.tr[["r"]], parms.prop.tr[["p"]], parms.prop.tr[["pi"]], w.shape, w.scale,
-                                    ws.shape, ws.scale, dateS, dateT)
+        if (parms.prop.tr["r"] > 0 & parms.prop.tr["p"] > 0 & parms.prop.tr["p"] <= 1 &
+            parms.prop.tr["pi"] > 0 & parms.prop.tr["pi"] <= 1 & parms.prop.tr["rho"] > 0 & parms.prop.tr["rho"] <= 1) {
 
-        pTTree2 <- log_lik_ttree(ttree, grid, fn_list2, parms.prop.tr[["r"]], parms.prop.tr[["p"]],
-                                 parms.prop.tr[["pi"]], w.shape, w.scale, ws.shape,
-                                 ws.scale, dateS, dateT, grid.delta, NA)
+          int.r <- parms.curr.tr["r", ]
+          int.r[k] <- parms.prop.tr["r"]
 
-        ss.alpha.tr <- (pTTree2 - pTTree) +
-          (dgamma(parms.prop.tr[["r"]], shape = r.shape, scale = r.scale, log = T) -
-             dgamma(parms.curr.tr[["r"]], shape = r.shape, scale = r.scale, log = T)) +
-          (dbeta(parms.prop.tr[["p"]], shape1 = p.shape1, shape2 = p.shape2, log = T) -
-             dbeta(parms.curr.tr[["p"]], shape1 = p.shape1, shape2 = p.shape2, log = T)) +
-          (dbeta(parms.prop.tr[["pi"]], shape1 = pi.shape1, shape2 = pi.shape2, log = T) -
-             dbeta(parms.curr.tr[["pi"]], shape1 = pi.shape1, shape2 = pi.shape2, log = T))
+          int.p <- parms.curr.tr["p", ]
+          int.p[k] <- parms.prop.tr["p"]
 
-      } else {
+          int.pi <- parms.curr.tr["pi", ]
+          int.pi[k] <- parms.prop.tr["pi"]
 
-        ss.alpha.tr <- -Inf
+          int.rho <- parms.curr.tr["rho", ]
+          int.rho[k] <- parms.prop.tr["rho"]
 
-      }
+          ext.r2 <- int.r[tr.demes]
+          ext.p2 <- int.p[tr.demes]
+          ext.pi2 <- int.pi[pi.demes]
+          ext.rho2 <- int.rho[rho.demes]
 
-      if (ss.u.tr < ss.alpha.tr) {
+          pm2 <- matrix(0, nrow = ndemes, ncol = ndemes)
 
-        parms.curr.tr[which(update.tr)] <- parms.prop.tr[which(update.tr)]
+          for (i in 1:ndemes) {
 
-        fn_list <- fn_list2
-        pTTree <- pTTree2
+            pm2[i, ] <- (1 - ext.rho[i]) / (ndemes - 1)
 
-      }
+            pm2[i, i] <- ext.rho[i]
 
-      trace.r[i] <- parms.curr.tr[["r"]]
-      trace.p[i] <- parms.curr.tr[["p"]]
-      trace.pi[i] <- parms.curr.tr[["pi"]]
+          }
 
-      if (i == 1) {
+          fn_list2 <- num_approx_disc_multi(grid, ext.r2, ext.p2, ext.pi2, w.shape, w.scale,
+                                            ws.shape, ws.scale, dateS, dateT, ndemes, pm2)
 
-        mcmc.mu.tr <- 0.5 * (parms.init.tr + parms.curr.tr)
+          llt_out2 <- log_lik_ttree_multiparm(ttree, grid, fn_list2, ext.r2, ext.p2, ext.pi2, w.shape, w.scale, ws.shape,
+                                             ws.scale, dateS, dateT, grid.delta, ndemes, pm2, demes.prior)
 
-        mcmc.cov.tr <- (1 / (ss.v0.tr + ss.d.tr + 3)) * (parms.init.tr %*% t(parms.init.tr) +
-                                                           parms.curr.tr %*% t(parms.curr.tr) +
-                                                           (ss.v0.tr + ss.d.tr + 1) * mcmc.cov.tr -
-                                                           2 * mcmc.mu.tr %*% t(mcmc.mu.tr))
+          pTTree2 <- llt_out2$loglik
+          dyn_L2 <- llt_out2$dyn_L
 
-      } else if (ss.f[i] == ss.f[i - 1]) {
 
-        mcmc.mu.new.tr <- ((i - ss.f[i]) / (i - ss.f[i] + 1)) * mcmc.mu.tr +
-          (1 / (i - ss.f[i] + 1)) * parms.curr.tr
-
-        mcmc.cov.tr <- (1 / (i - ss.f[i] + ss.v0.tr + ss.d.tr + 2)) *
-          ((i - ss.f[i] + ss.v0.tr + ss.d.tr + 1) * mcmc.cov.tr +
-             parms.curr.tr %*% t(parms.curr.tr) +
-             (i - ss.f[i]) * mcmc.mu.tr %*% t(mcmc.mu.tr) -
-             (i - ss.f[i] + 1) * mcmc.mu.new.tr %*% t(mcmc.mu.new.tr))
-
-        mcmc.mu.tr <- mcmc.mu.new.tr
-
-      } else {
-
-        rem.el <- ss.f[i] - 1
-
-        if (rem.el == 0) {
-
-          parms.rem.tr <- parms.init.tr
+          ss.alpha.tr <- (pTTree2 - pTTree) +
+            (dgamma(parms.prop.tr[["r"]], shape = r.shape, scale = r.scale, log = T) -
+               dgamma(parms.curr.tr[["r"]], shape = r.shape, scale = r.scale, log = T)) +
+            (dbeta(parms.prop.tr[["p"]], shape1 = p.shape1, shape2 = p.shape2, log = T) -
+               dbeta(parms.curr.tr[["p"]], shape1 = p.shape1, shape2 = p.shape2, log = T)) +
+            (dbeta(parms.prop.tr[["pi"]], shape1 = pi.shape1, shape2 = pi.shape2, log = T) -
+               dbeta(parms.curr.tr[["pi"]], shape1 = pi.shape1, shape2 = pi.shape2, log = T)) +
+            (dbeta(parms.prop.tr[["rho"]], shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
+               dbeta(parms.prop.tr[["rho"]], shape1 = rho.shape1, shape2 = rho.shape2, log = T))
 
         } else {
 
-          parms.rem.tr <- c(r = trace.r[rem.el],
-                            p = trace.p[rem.el],
-                            pi = trace.pi[rem.el])
+          ss.alpha.tr <- -Inf
 
         }
 
-        mcmc.mu.new.tr <- mcmc.mu.tr + (1 / (i - ss.f[i] + 1)) * (parms.curr.tr - parms.rem.tr)
+        if (ss.u.tr < ss.alpha.tr) {
 
-        mcmc.cov.tr <- mcmc.cov.tr + (1 / (i - ss.f[i] + ss.v0.tr + ss.d.tr + 2)) *
-          (parms.curr.tr %*% t(parms.curr.tr) - parms.rem.tr %*% t(parms.rem.tr) +
-             (i - ss.f[i] + 1) * (mcmc.mu.tr %*% t(mcmc.mu.tr) - mcmc.mu.new.tr %*% t(mcmc.mu.new.tr)))
+          parms.curr.tr[, k] <- parms.prop.tr
 
-        mcmc.mu.tr <- mcmc.mu.new.tr
+          ext.r <- ext.r2
+          ext.p <- ext.p2
+          ext.pi <- ext.pi2
+          ext.rho <- ext.rho2
+
+          pm <- pm2
+
+          fn_list <- fn_list2
+          pTTree <- pTTree2
+          dyn_L <- dyn_L2
+
+        }
+
+        trace.r[i, k] <- parms.curr.tr[["r", k]]
+        trace.p[i, k] <- parms.curr.tr[["p", k]]
+        trace.pi[i, k] <- parms.curr.tr[["pi", k]]
+        trace.rho[i, k] <- parms.curr.tr[["rho", k]]
+
+        mcmc.mu.tr <- list()
+
+        if (i == 1) {
+
+          mcmc.mu.tr[[k]] <- 0.5 * (parms.init.tr[, k] + parms.curr.tr[, k])
+
+          mcmc.cov.tr[[k]] <- (1 / (ss.v0.tr[k] + ss.d.tr[k] + 3)) * (parms.init.tr[, k] %*% t(parms.init.tr[, k]) +
+                                                             parms.curr.tr[, k] %*% t(parms.curr.tr[, k]) +
+                                                             (ss.v0.tr[k] + ss.d.tr[k] + 1) * mcmc.cov.tr[[k]] -
+                                                             2 * mcmc.mu.tr[[k]] %*% t(mcmc.mu.tr[[k]]))
+
+        } else if (ss.f[i] == ss.f[i - 1]) {
+
+          mcmc.mu.new.tr <- ((i - ss.f[i]) / (i - ss.f[i] + 1)) * mcmc.mu.tr[[k]] +
+            (1 / (i - ss.f[i] + 1)) * parms.curr.tr[, k]
+
+          mcmc.cov.tr[[k]] <- (1 / (i - ss.f[i] + ss.v0.tr[k] + ss.d.tr[k] + 2)) *
+            ((i - ss.f[i] + ss.v0.tr[k] + ss.d.tr[k] + 1) * mcmc.cov.tr[[k]] +
+               parms.curr.tr[, k] %*% t(parms.curr.tr[, k]) +
+               (i - ss.f[i]) * mcmc.mu.tr[[k]] %*% t(mcmc.mu.tr[[k]]) -
+               (i - ss.f[i] + 1) * mcmc.mu.new.tr %*% t(mcmc.mu.new.tr))
+
+          mcmc.mu.tr[[k]] <- mcmc.mu.new.tr
+
+        } else {
+
+          rem.el <- ss.f[i] - 1
+
+          if (rem.el == 0) {
+
+            parms.rem.tr <- parms.init.tr[, k]
+
+          } else {
+
+            parms.rem.tr <- c(r = trace.r[rem.el, k],
+                              p = trace.p[rem.el, k],
+                              pi = trace.pi[rem.el, k],
+                              rho = trace.rho[rem.el, k])
+
+          }
+
+          mcmc.mu.new.tr <- mcmc.mu.tr[[k]] + (1 / (i - ss.f[i] + 1)) * (parms.curr.tr[, k] - parms.rem.tr)
+
+          mcmc.cov.tr[[k]] <- mcmc.cov.tr[[k]] + (1 / (i - ss.f[i] + ss.v0.tr[k] + ss.d.tr[k] + 2)) *
+            (parms.curr.tr[, k] %*% t(parms.curr.tr[, k]) - parms.rem.tr %*% t(parms.rem.tr) +
+               (i - ss.f[i] + 1) * (mcmc.mu.tr[[k]] %*% t(mcmc.mu.tr[[k]]) - mcmc.mu.new.tr %*% t(mcmc.mu.new.tr)))
+
+          mcmc.mu.tr[[k]] <- mcmc.mu.new.tr
+
+        }
+
+        ss.lam.tr[k] <- max(c(ss.min, ss.lam.tr[k] * exp((ss.del.tr[k] / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.tr))) - ss.a))))
 
       }
-
-      ss.lam.tr <- max(c(ss.min, ss.lam.tr * exp((ss.del.tr / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.tr))) - ss.a))))
 
     }
 
@@ -739,89 +793,6 @@ inferTTreemulti <- function(ptree,
 
     }
 
-    if (update.rho) {
-
-      parms.prop.rho <- rnorm(1, mean = parms.curr.rho, sd = sqrt(ss.lam.rho * ss.c.rho * mcmc.cov.rho))
-
-      ss.u.rho <- log(runif(1))
-
-      if (parms.prop.rho >= 0 & parms.prop.rho <= 1) {
-
-        pm2 <- matrix((1 - parms.prop.rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
-        diag(pm2) <- parms.prop.rho
-
-        pLocs2 <- log_lik_locs_felsenstein(ttree, pm2, demes.prior)
-
-        ss.alpha.rho <- (pLocs2 - pLocs) +
-          (dbeta(parms.prop.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
-             dbeta(parms.curr.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T))
-
-      } else {
-
-        ss.alpha.rho <- -Inf
-
-      }
-
-      if (ss.u.rho < ss.alpha.rho) {
-
-        parms.curr.rho <- parms.prop.rho
-
-        pm <- pm2
-        pLocs <- pLocs2
-
-      }
-
-      trace.rho[i] <- parms.curr.rho
-
-      if (i == 1) {
-
-        mcmc.mu.rho <- 0.5 * (parms.init.rho + parms.curr.rho)
-
-        mcmc.cov.rho <- (1 / (ss.v0.rho + ss.d.rho + 3)) * (parms.init.rho * parms.init.rho +
-                                                              parms.curr.rho * parms.curr.rho +
-                                                              (ss.v0.rho + ss.d.rho + 1) * mcmc.cov.rho -
-                                                              2 * mcmc.mu.rho * mcmc.mu.rho)
-
-      } else if (ss.f[i] == ss.f[i - 1]) {
-
-        mcmc.mu.new.rho <- ((i - ss.f[i]) / (i - ss.f[i] + 1)) * mcmc.mu.rho +
-          (1 / (i - ss.f[i] + 1)) * parms.curr.rho
-
-        mcmc.cov.rho <- (1 / (i - ss.f[i] + ss.v0.rho + ss.d.rho + 2)) *
-          ((i - ss.f[i] + ss.v0.rho + ss.d.rho + 1) * mcmc.cov.rho +
-             parms.curr.rho * parms.curr.rho +
-             (i - ss.f[i]) * mcmc.mu.rho * mcmc.mu.rho -
-             (i - ss.f[i] + 1) * mcmc.mu.new.rho * mcmc.mu.new.rho)
-
-        mcmc.mu.rho <- mcmc.mu.new.rho
-
-      } else {
-
-        rem.el <- ss.f[i] - 1
-
-        if (rem.el == 0) {
-
-          parms.rem.rho <- parms.init.rho
-
-        } else {
-
-          parms.rem.rho <- trace.rho[rem.el]
-
-        }
-
-        mcmc.mu.new.rho <- mcmc.mu.rho + (1 / (i - ss.f[i] + 1)) * (parms.curr.rho - parms.rem.rho)
-
-        mcmc.cov.rho <- mcmc.cov.rho + (1 / (i - ss.f[i] + ss.v0.rho + ss.d.rho + 2)) *
-          (parms.curr.rho * parms.curr.rho - parms.rem.rho * parms.rem.rho +
-             (i - ss.f[i] + 1) * (mcmc.mu.rho * mcmc.mu.rho - mcmc.mu.new.rho * mcmc.mu.new.rho))
-
-        mcmc.mu.rho <- mcmc.mu.new.rho
-
-      }
-
-      ss.lam.rho <- max(c(ss.min, ss.lam.rho * exp((ss.del.rho / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.rho))) - ss.a))))
-
-    }
 
     if (i %% thinning == 0) {
 
@@ -844,10 +815,12 @@ inferTTreemulti <- function(ptree,
       record[[i / thinning]]$pPTree <- pPTree
       record[[i / thinning]]$kappa <- parms.curr.coa[["kappa"]]
       record[[i / thinning]]$lambda <- parms.curr.coa[["lambda"]]
-      record[[i / thinning]]$rho <- parms.curr.rho
-      record[[i / thinning]]$off.r <- parms.curr.tr[["r"]]
-      record[[i / thinning]]$off.p <- parms.curr.tr[["p"]]
-      record[[i / thinning]]$pi <- parms.curr.tr[["pi"]]
+
+      record[[i / thinning]]$off.r <- parms.curr.tr[["r", ]]
+      record[[i / thinning]]$off.p <- parms.curr.tr[["p", ]]
+      record[[i / thinning]]$pi <- parms.curr.tr[["pi", ]]
+      record[[i / thinning]]$rho <- parms.curr.tr[["rho", ]]
+
       record[[i / thinning]]$w.shape <- w.shape
       record[[i / thinning]]$w.scale <- w.scale
       record[[i / thinning]]$ws.shape <- ws.shape
