@@ -6,7 +6,7 @@ init_ctree <- function(ptree, bottleneck = 1) {
 
   nam <- ptree$nam
   host <- ptree$host
-  locations <- ptree$locations
+  demes <- ptree$demes
 
   ptree <- ptree$ptree
 
@@ -408,7 +408,7 @@ init_ctree <- function(ptree, bottleneck = 1) {
 
   }
 
-  l <- list(ctree = ctree, nam = nam, locations = locations)
+  l <- list(ctree = ctree, nam = nam, demes = demes)
   class(l) <- 'ctree'
 
   return(l)

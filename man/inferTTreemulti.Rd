@@ -31,7 +31,7 @@ inferTTreemulti(
   update.pi = T,
   update.kappa = T,
   update.lambda = T,
-  update.rho = F,
+  update.rho = T,
   update.ctree = T,
   ndemes = NA,
   r.shape = 1,
