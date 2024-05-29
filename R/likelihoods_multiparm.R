@@ -1,4 +1,4 @@
-#' Calculate calculate T for given host and deme
+#' Calculate calculate log T for given host and deme
 #'
 #' @param ttree Transmission tree
 #' @param obs Observation times
@@ -40,13 +40,13 @@ dyn_T <- function(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.
 
     obs_time <- min(obs[which(obs[, 2] == host), 1])
 
-    Tns <- ((pi[deme] * dgamma(obs_time - inf_time, shape = ws.shape, scale = ws.scale)) / (1 - omega_int)) *
-      alpha_sum * factorial(inc_off)
+    Tns <- log(pi[deme]) + dgamma(obs_time - inf_time, shape = ws.shape, scale = ws.scale, log = T) -
+      log(1 - omega_int) + log(alpha_sum) + lfactorial(inc_off)
 
   # Host is unobserved
   } else {
 
-    Tns <- ((1 - pit_int) / (1 - omega_int)) * alpha_sum * factorial(inc_off)
+    Tns <- log(1 - pit_int) - log(1 - omega_int) + log(alpha_sum) + lfactorial(inc_off)
 
   }
 
@@ -55,7 +55,7 @@ dyn_T <- function(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.
 }
 
 
-#' Calculate calculate U for given hosts and demes
+#' Calculate calculate log U for given hosts and demes
 #'
 #' @param ttree Transmission tree
 #' @param grid Discrete grid over which to evaluate functions
@@ -78,7 +78,8 @@ dyn_U <- function(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta = 1 
 
   omega_int2 <- omega[tidx2, deme2] + ((inf_time2 - grid[tidx2]) / (grid[tidx2 + 1] - grid[tidx2])) * (omega[tidx2 + 1, deme2] - omega[tidx2, deme2])
 
-  Uns <- (1 - omega_int2) * dgamma(inf_time2 - inf_time1, shape = w.shape, scale = w.scale) * pm[deme1, deme2]
+  Uns <- log(1 - omega_int2) + dgamma(inf_time2 - inf_time1, shape = w.shape, scale = w.scale, log = T) +
+    log(pm[deme1, deme2])
 
   return(Uns)
 
@@ -86,7 +87,7 @@ dyn_U <- function(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta = 1 
 
 
 
-#' Calculate transmission tree likelihood
+#' Calculate transmission tree log likelihood
 #'
 #' @param ttree Transmission tree
 #' @param grid Discrete grid over which to evaluate functions
@@ -117,7 +118,8 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
   nhosts <- length(ttree[, 1])
 
-  dyn_L <- array(0, dim = c(nhosts, ndemes))
+  dyn_L <- array(-Inf, dim = c(nhosts, ndemes))
+  lul <- numeric(ndemes)
 
   host_order <- order(ttree[, 1], decreasing = T)
 
@@ -169,16 +171,17 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
           for (j in children) {
 
-            sum_ul <- 0
-
             for (d2 in 1:ndemes) {
 
-              sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) *
+              lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) +
                 dyn_L[j, d2]
 
             }
 
-            dyn_L[i, demes[i]] <- dyn_L[i, demes[i]] * sum_ul
+            m <- max(lul)
+
+            dyn_L[i, demes[i]] <- dyn_L[i, demes[i]] +
+              log(sum(exp(lul - m))) + m
 
           }
 
@@ -191,16 +194,17 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
             for (j in children) {
 
-              sum_ul <- 0
-
               for (d2 in 1:ndemes) {
 
-                sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) *
+                lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) +
                   dyn_L[j, d2]
 
               }
 
-              dyn_L[i, d] <- dyn_L[i, d] * sum_ul
+              m <- max(lul)
+
+              dyn_L[i, d] <- dyn_L[i, d] +
+                log(sum(exp(lul - m))) + m
 
             }
 
@@ -217,16 +221,17 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
           for (j in children) {
 
-            sum_ul <- 0
-
             for (d2 in 1:ndemes) {
 
-              sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) *
+              lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) +
                 dyn_L[j, d2]
 
             }
 
-            dyn_L[i, d] <- dyn_L[i, d] * sum_ul
+            m <- max(lul)
+
+            dyn_L[i, d] <- dyn_L[i, d] +
+              log(sum(exp(lul - m))) + m
 
           }
 
@@ -234,14 +239,17 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
       }
 
-
     }
 
   }
 
   root_host <- host_order[length(host_order)]
 
-  log_likelihood <- log(sum(demes.prior * dyn_L[root_host, ]))
+  lpl <- log(demes.prior) + dyn_L[root_host, ]
+
+  rootm <- max(lpl)
+
+  log_likelihood <- log(sum(exp(lpl - rootm))) + rootm
 
   return(list(loglik = log_likelihood, dyn_L = dyn_L))
 
@@ -279,6 +287,8 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
   nhosts <- length(ttree[, 1])
 
+  lul <- numeric(ndemes)
+
   todo <- hosts
 
   while(length(todo) > 0) {
@@ -287,7 +297,7 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
     i <- host_order[1]
 
-    dyn_L[i, ] <- rep(0, ndemes)
+    dyn_L[i, ] <- rep(-Inf, ndemes)
 
     # Leaf
     if (length(which(ttree[, 3] == i)) == 0) {
@@ -335,16 +345,17 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
           for (j in children) {
 
-            sum_ul <- 0
-
             for (d2 in 1:ndemes) {
 
-              sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) *
+              lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) +
                 dyn_L[j, d2]
 
             }
 
-            dyn_L[i, demes[i]] <- dyn_L[i, demes[i]] * sum_ul
+            m <- max(lul)
+
+            dyn_L[i, demes[i]] <- dyn_L[i, demes[i]] +
+              log(sum(exp(lul - m))) + m
 
           }
 
@@ -357,16 +368,17 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
             for (j in children) {
 
-              sum_ul <- 0
-
               for (d2 in 1:ndemes) {
 
-                sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) *
+                lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) +
                   dyn_L[j, d2]
 
               }
 
-              dyn_L[i, d] <- dyn_L[i, d] * sum_ul
+              m <- max(lul)
+
+              dyn_L[i, d] <- dyn_L[i, d] +
+                log(sum(exp(lul - m))) + m
 
             }
 
@@ -383,16 +395,17 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
           for (j in children) {
 
-            sum_ul <- 0
-
             for (d2 in 1:ndemes) {
 
-              sum_ul <- sum_ul + dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) *
+              lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) +
                 dyn_L[j, d2]
 
             }
 
-            dyn_L[i, d] <- dyn_L[i, d] * sum_ul
+            m <- max(lul)
+
+            dyn_L[i, d] <- dyn_L[i, d] +
+              log(sum(exp(lul - m))) + m
 
           }
 
@@ -419,7 +432,11 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
   root_host <- which(ttree[, 3] == 0)
 
-  log_likelihood <- log(sum(demes.prior * dyn_L[root_host, ]))
+  lpl <- log(demes.prior) + dyn_L[root_host, ]
+
+  rootm <- max(lpl)
+
+  log_likelihood <- log(sum(exp(lpl - rootm))) + rootm
 
   return(list(loglik = log_likelihood, dyn_L = dyn_L))
 
