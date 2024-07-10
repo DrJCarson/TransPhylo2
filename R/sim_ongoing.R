@@ -22,7 +22,7 @@
 #' @param grid.delta Discrete time step
 #' @param nSampled Number of sampled hosts.
 #' @param nObs Number of samples.
-#' @param ndemes Number of possible locations.
+#' @param ndemes Number of possible demes.
 #' @param rho Probability of transmitting to the same location.
 #'
 #' @export
@@ -141,10 +141,10 @@ simulateOutbreak <- function(off.r = 1,
 
     ttree <- extractTTree(ctree)
 
-    locations <- numeric(length(ttree$ttree[, 1]))
+    demes <- numeric(length(ttree$ttree[, 1]))
 
     todo <- which(ttree$ttree[, 3] == 0)
-    locations[which(ttree$ttree[, 3] == 0)] <- 1
+    demes[which(ttree$ttree[, 3] == 0)] <- 1
 
     while (length(todo) > 0) {
 
@@ -152,7 +152,7 @@ simulateOutbreak <- function(off.r = 1,
 
       children <- which(ttree$ttree[, 3] == host)
 
-      locations[children] <- sample(1:ndemes, size = length(children), replace = T, prob = pm[locations[host], ])
+      demes[children] <- sample(1:ndemes, size = length(children), replace = T, prob = pm[demes[host], ])
 
       todo <- c(todo, children)
 
@@ -162,7 +162,7 @@ simulateOutbreak <- function(off.r = 1,
 
 #    obs_hosts <- which(ttree$ttree[, 2] > 0)
 
-    ctree$locations <- locations
+    ctree$demes <- demes
 
   }
 

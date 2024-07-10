@@ -33,7 +33,7 @@ inferTTree(
   update.lambda = T,
   update.rho = F,
   update.ctree = T,
-  nLocs = NA,
+  ndemes = NA,
   r.shape = 1,
   r.scale = 1,
   p.shape1 = 1,
@@ -46,7 +46,7 @@ inferTTree(
   lambda.scale = 1,
   rho.shape1 = 1,
   rho.shape2 = 1,
-  locs.prior = NA,
+  demes.prior = NA,
   dateS = -Inf,
   dateT = NA,
   grid.delta = NA,
@@ -110,7 +110,7 @@ inferTTree(
 
 \item{update.ctree}{Whether to update the transmission tree}
 
-\item{nLocs}{Number of possible locations}
+\item{ndemes}{Number of possible demes}
 
 \item{r.shape}{Shape parameter for the Gamma prior of parameter r}
 
@@ -136,7 +136,7 @@ inferTTree(
 
 \item{rho.shape2}{Shape2 parameter for the Beta prior of parameter rho}
 
-\item{locs.prior}{Prior probability for the location of the root host}
+\item{demes.prior}{Prior probability for the location of the root host}
 
 \item{dateS}{Start date for observations}
 

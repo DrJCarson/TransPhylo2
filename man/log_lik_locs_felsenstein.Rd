@@ -2,17 +2,17 @@
 % Please edit documentation in R/likelihoods.R
 \name{log_lik_locs_felsenstein}
 \alias{log_lik_locs_felsenstein}
-\title{Locations likelihood for a transmission tree using Felsenstein pruning}
+\title{Demes likelihood for a transmission tree using Felsenstein pruning}
 \usage{
-log_lik_locs_felsenstein(ttree, pm, locs.prior)
+log_lik_locs_felsenstein(ttree, pm, demes.prior)
 }
 \arguments{
 \item{ttree}{Transmission tree}
 
-\item{pm}{Probability transition matrix between locations}
+\item{pm}{Probability transition matrix between demes}
 
-\item{locs.prior}{Prior probability for the location of the root host}
+\item{demes.prior}{Prior probability for the location of the root host}
 }
 \description{
-Locations likelihood for a transmission tree using Felsenstein pruning
+Demes likelihood for a transmission tree using Felsenstein pruning
 }

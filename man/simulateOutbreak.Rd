@@ -76,7 +76,7 @@ simulateOutbreak(
 
 \item{nObs}{Number of samples.}
 
-\item{ndemes}{Number of possible locations.}
+\item{ndemes}{Number of possible demes.}
 
 \item{rho}{Probability of transmitting to the same location.}
 }

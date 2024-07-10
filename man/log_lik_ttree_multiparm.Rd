@@ -2,7 +2,7 @@
 % Please edit documentation in R/likelihoods_multiparm.R
 \name{log_lik_ttree_multiparm}
 \alias{log_lik_ttree_multiparm}
-\title{Calculate transmission tree likelihood}
+\title{Calculate transmission tree log likelihood}
 \usage{
 log_lik_ttree_multiparm(
   ttree,
@@ -53,5 +53,5 @@ log_lik_ttree_multiparm(
 \item{hosts}{Hosts over which likelihood is calculated}
 }
 \description{
-Calculate transmission tree likelihood
+Calculate transmission tree log likelihood
 }

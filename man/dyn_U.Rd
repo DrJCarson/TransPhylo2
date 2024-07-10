@@ -2,7 +2,7 @@
 % Please edit documentation in R/likelihoods_multiparm.R
 \name{dyn_U}
 \alias{dyn_U}
-\title{Calculate calculate U for given hosts and demes}
+\title{Calculate calculate log U for given hosts and demes}
 \usage{
 dyn_U(
   ttree,
@@ -45,5 +45,5 @@ dyn_U(
 \item{pm}{Transition probability matrix between demes}
 }
 \description{
-Calculate calculate U for given hosts and demes
+Calculate calculate log U for given hosts and demes
 }

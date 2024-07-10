@@ -127,6 +127,12 @@ inferTTreemulti <- function(ptree,
 
   }
 
+  if (length(ptree$demes) == 0) {
+
+    ptree$demes[1:length(ptree$nam)] <- 1
+
+  }
+
   # Ensure observation start time is consistent with observation times
   if (dateS > min(ptree$ptree[which(ptree$ptree[, 2] == 0), 1])) {
 
@@ -185,6 +191,12 @@ inferTTreemulti <- function(ptree,
     ctree <- init_ctree(ptree)
 
   } else {
+
+    if (length(init.ctree$demes) == 0) {
+
+      init.ctree$demes[1:length(ptree$nam)] <- 1
+
+    }
 
     ctree <- init.ctree
 
@@ -502,7 +514,7 @@ inferTTreemulti <- function(ptree,
           ttree2 <- extractTTree(ctree2)
 
 
-          dyn_L2 <- dyn_L[inv_host_map, ]
+          dyn_L2 <- dyn_L[inv_host_map, , drop = F]
 
           llt_out2 <- log_lik_ttree_multiparm_part(ttree2, grid, fn_list, ext.r, ext.p, ext.pi, w.shape, w.scale, ws.shape,
                                                                ws.scale, dateS, dateT, grid.delta, ndemes, pm, demes.prior,

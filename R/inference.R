@@ -27,7 +27,7 @@
 #' @param update.lambda Whether to update the parameter lambda
 #' @param update.rho Whether to update parameter rho
 #' @param update.ctree Whether to update the transmission tree
-#' @param nLocs Number of possible locations
+#' @param ndemes Number of possible demes
 #' @param r.shape Shape parameter for the Gamma prior of parameter r
 #' @param r.scale Scale parameter for the Gamma prior of parameter r
 #' @param p.shape1 Shape1 parameter for the Beta prior of parameter p
@@ -40,7 +40,7 @@
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
 #' @param rho.shape1 Shape1 parameter for the Beta prior of parameter rho
 #' @param rho.shape2 Shape2 parameter for the Beta prior of parameter rho
-#' @param locs.prior Prior probability for the location of the root host
+#' @param demes.prior Prior probability for the location of the root host
 #' @param dateS Start date for observations
 #' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
@@ -74,7 +74,7 @@ inferTTree <- function(ptree,
                         update.lambda = T,
                         update.rho = F,
                         update.ctree = T,
-                        nLocs = NA,
+                        ndemes = NA,
                         r.shape = 1,
                         r.scale = 1,
                         p.shape1 = 1,
@@ -87,7 +87,7 @@ inferTTree <- function(ptree,
                         lambda.scale = 1,
                         rho.shape1 = 1,
                         rho.shape2 = 1,
-                        locs.prior = NA,
+                        demes.prior = NA,
                         dateS = -Inf,
                         dateT = NA,
                         grid.delta = NA,
@@ -114,10 +114,10 @@ inferTTree <- function(ptree,
   # Determine vector of primary observation times
   prim_obs_times <- calc_prim_obs(ptree)
 
-  # Check that locations are given if updating rho
-  if (length(ptree$locations) == 0 & update.rho) {
+  # Check that demes are given if updating rho
+  if (length(ptree$demes) == 0 & update.rho) {
 
-    stop('Locations are needed in ptree to update parameter rho')
+    stop('Demes are needed in ptree to update parameter rho')
 
   }
 
@@ -278,22 +278,22 @@ inferTTree <- function(ptree,
 
   if (update.rho) {
 
-    if (is.na(nLocs)) {
+    if (is.na(ndemes)) {
 
-      nLocs <- max(ptree$locations)
-
-    }
-
-    if (is.na(locs.prior)) {
-
-      locs.prior <- rep(1 / nLocs, nLocs)
+      ndemes <- max(ptree$demes)
 
     }
 
-    pm <- matrix((1 - parms.curr.rho) / (nLocs - 1), nrow = nLocs, ncol = nLocs)
+    if (is.na(demes.prior)) {
+
+      demes.prior <- rep(1 / ndemes, ndemes)
+
+    }
+
+    pm <- matrix((1 - parms.curr.rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
     diag(pm) <- parms.curr.rho
 
-    pLocs <- log_lik_locs_felsenstein(ttree, pm, locs.prior)
+    pLocs <- log_lik_locs_felsenstein(ttree, pm, demes.prior)
 
   }
 
@@ -374,7 +374,7 @@ inferTTree <- function(ptree,
 
           if (update.rho) {
 
-            pLocs2 <- log_lik_locs_felsenstein(ttree2, pm, locs.prior)
+            pLocs2 <- log_lik_locs_felsenstein(ttree2, pm, demes.prior)
 
             pLocs_diff <- pLocs2 - pLocs
 
@@ -631,10 +631,10 @@ inferTTree <- function(ptree,
 
       if (parms.prop.rho >= 0 & parms.prop.rho <= 1) {
 
-        pm2 <- matrix((1 - parms.prop.rho) / (nLocs - 1), nrow = nLocs, ncol = nLocs)
+        pm2 <- matrix((1 - parms.prop.rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
         diag(pm2) <- parms.prop.rho
 
-        pLocs2 <- log_lik_locs_felsenstein(ttree, pm2, locs.prior)
+        pLocs2 <- log_lik_locs_felsenstein(ttree, pm2, demes.prior)
 
         ss.alpha.rho <- (pLocs2 - pLocs) +
           (dbeta(parms.prop.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T) -

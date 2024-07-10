@@ -2,7 +2,7 @@
 % Please edit documentation in R/likelihoods_multiparm.R
 \name{dyn_T}
 \alias{dyn_T}
-\title{Calculate calculate T for given host and deme}
+\title{Calculate calculate log T for given host and deme}
 \usage{
 dyn_T(
   ttree,
@@ -57,5 +57,5 @@ dyn_T(
 \item{hosts}{Host for which likelihood is calculated}
 }
 \description{
-Calculate calculate T for given host and deme
+Calculate calculate log T for given host and deme
 }
