@@ -96,6 +96,9 @@ inferTTree <- function(ptree,
   # Ensure that all leaves have unique times
   ptree$ptree[, 1] <- ptree$ptree[, 1] + runif(nrow(ptree$ptree)) * 1e-10
 
+  # Remove excess deme information (i.e. from simulated data)
+  ptree$demes <- ptree$demes[1:length(ptree$nam)]
+
   # Ensure branch lengths of ptree are positive
   for (i in (ceiling(nrow(ptree$ptree) / 2) + 1):nrow(ptree$ptree)) {
 
@@ -118,6 +121,12 @@ inferTTree <- function(ptree,
   if (length(ptree$demes) == 0 & update.rho) {
 
     stop('Demes are needed in ptree to update parameter rho')
+
+  }
+
+  if (length(ptree$demes) == 0) {
+
+    ptree$demes[1:length(ptree$nam)] <- 1
 
   }
 
@@ -196,6 +205,12 @@ inferTTree <- function(ptree,
     ctree <- init_ctree(ptree)
 
   } else {
+
+    if (length(init.ctree$demes) == 0) {
+
+      init.ctree$demes[1:length(ptree$nam)] <- 1
+
+    }
 
     ctree <- init.ctree
 
@@ -293,7 +308,10 @@ inferTTree <- function(ptree,
     pm <- matrix((1 - parms.curr.rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
     diag(pm) <- parms.curr.rho
 
-    pLocs <- log_lik_locs_felsenstein(ttree, pm, demes.prior)
+    ll_out <- log_lik_locs_felsenstein(ttree, pm, demes.prior)
+
+    pLocs <- ll_out$loglik
+    dyn_L <- ll_out$dyn_L
 
   }
 
@@ -342,17 +360,30 @@ inferTTree <- function(ptree,
           prop_type <- 1
           tree_prop_count["add"] <- tree_prop_count["add"] + 1
 
+          host_map <- proptree$host_map
+
+          inv_host_map <- rep(NA, length(host_map) + 1)
+          inv_host_map[(1:(length(host_map) + 1)) %in% host_map] <- order(host_map, na.last = NA)
+
         } else if (u < 2 / 3) {
 
           proptree <- remove_transmission(ctree = ctree)
           prop_type <- 2
           tree_prop_count["remove"] <- tree_prop_count["remove"] + 1
 
+          host_map <- proptree$host_map
+
+          inv_host_map <- order(host_map, na.last = NA)
+
         } else {
 
           proptree <- remove_add(ctree = ctree)
           prop_type <- 3
           tree_prop_count["move"] <- tree_prop_count["move"] + 1
+
+          host_map <- proptree$host_map
+
+          inv_host_map <- order(host_map, na.last = NA)
 
         }
 
@@ -374,9 +405,16 @@ inferTTree <- function(ptree,
 
           if (update.rho) {
 
-            pLocs2 <- log_lik_locs_felsenstein(ttree2, pm, demes.prior)
+            dyn_L2 <- dyn_L[inv_host_map, , drop = F]
 
-            pLocs_diff <- pLocs2 - pLocs
+            ll_out <- log_lik_locs_felsenstein_part(ttree, pm, demes.prior, dyn_L, proptree$curr_hosts)
+            ll_out2 <- log_lik_locs_felsenstein_part(ttree2, pm, demes.prior, dyn_L2, proptree$prop_hosts)
+
+            dyn_L2 <- ll_out2$dyn_L
+
+#            pLocs2 <- pLocs + ll_out2$loglik - ll_out$loglik
+
+            pLocs_diff <- ll_out2$loglik - ll_out$loglik
 
           } else {
 
@@ -394,7 +432,9 @@ inferTTree <- function(ptree,
 
             if (update.rho) {
 
-              pLocs <- pLocs2
+              pLocs <- pLocs + pLocs_diff
+
+              dyn_L <- dyn_L2
 
             }
 
@@ -634,7 +674,10 @@ inferTTree <- function(ptree,
         pm2 <- matrix((1 - parms.prop.rho) / (ndemes - 1), nrow = ndemes, ncol = ndemes)
         diag(pm2) <- parms.prop.rho
 
-        pLocs2 <- log_lik_locs_felsenstein(ttree, pm2, demes.prior)
+        ll_out2 <- log_lik_locs_felsenstein(ttree, pm2, demes.prior)
+
+        pLocs2 <- ll_out2$loglik
+        dyn_L2 <- ll_out2$dyn_L
 
         ss.alpha.rho <- (pLocs2 - pLocs) +
           (dbeta(parms.prop.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
@@ -652,6 +695,7 @@ inferTTree <- function(ptree,
 
         pm <- pm2
         pLocs <- pLocs2
+        dyn_L <- dyn_L2
 
       }
 

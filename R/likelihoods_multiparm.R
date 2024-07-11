@@ -293,9 +293,9 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
   while(length(todo) > 0) {
 
-    host_order <- todo[order(ttree[todo, 1], decreasing = T)]
+    todo <- todo[order(ttree[todo, 1], decreasing = T)]
 
-    i <- host_order[1]
+    i <- todo[1]
 
     dyn_L[i, ] <- rep(-Inf, ndemes)
 

@@ -232,7 +232,7 @@ log_lik_ptree_given_ctree <- function(ctree, kappa, lambda, hosts = NA) {
 log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
 
   # Initiate log likelihood
-  log_lik <- 0
+  log_likelihood <- 0
 
   demes <- ttree$demes
   ttree <- ttree$ttree
@@ -244,7 +244,7 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
   n_inds <- length(ttree[, 1])
 
   # Probabilities for each location for each host
-  loc_probs <- array(rep(0, n_inds * n_demes), dim = c(n_inds, n_demes))
+  dyn_L <- array(rep(0, n_inds * n_demes), dim = c(n_inds, n_demes))
 
   # Order in which to calculate location probabilities
   rev_order <- order(ttree[, 1] , decreasing = T)
@@ -263,7 +263,7 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
         # Calculate location probabilities
         hl <- demes[host]
 
-        loc_probs[host, hl] <- 1
+        dyn_L[host, hl] <- 1
 
         for (j in 1:length(children)) {
 
@@ -273,18 +273,18 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
 
           for (cl in 1:n_demes) {
 
-            temp_prob <- temp_prob + pm[hl, cl] * loc_probs[child, cl]
+            temp_prob <- temp_prob + pm[hl, cl] * dyn_L[child, cl]
 
           }
 
-          loc_probs[host, hl] <- loc_probs[host, hl] * temp_prob
+          dyn_L[host, hl] <- dyn_L[host, hl] * temp_prob
 
         }
 
         # Host is root host
         if (i == n_inds) {
 
-          log_lik <- log(demes.prior[demes[host]] * loc_probs[host, demes[host]])
+          log_likelihood <- log(demes.prior[demes[host]] * dyn_L[host, demes[host]])
 
         }
 
@@ -293,7 +293,7 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
         # Calculate location probabilities
         for (hl in 1:n_demes) {
 
-          loc_probs[host, hl] <- 1
+          dyn_L[host, hl] <- 1
 
           for (j in 1:length(children)) {
 
@@ -303,11 +303,11 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
 
             for (cl in 1:n_demes) {
 
-              temp_prob <- temp_prob + pm[hl, cl] * loc_probs[child, cl]
+              temp_prob <- temp_prob + pm[hl, cl] * dyn_L[child, cl]
 
             }
 
-            loc_probs[host, hl] <- loc_probs[host, hl] * temp_prob
+            dyn_L[host, hl] <- dyn_L[host, hl] * temp_prob
 
           }
 
@@ -316,7 +316,7 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
         # Host is root host
         if (i == n_inds) {
 
-          log_lik <- log(sum(demes.prior * loc_probs[host,]))
+          log_likelihood <- log(sum(demes.prior * dyn_L[host,]))
 
         }
 
@@ -327,11 +327,11 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
       if (!is.na(demes[host])) {
 
         # If location known, no likelihood update for leaf
-        loc_probs[host, demes[host]] <- 1
+        dyn_L[host, demes[host]] <- 1
 
       } else {
 
-        loc_probs[host, ] <- 1
+        dyn_L[host, ] <- 1
 
       }
 
@@ -339,6 +339,139 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
 
   }
 
-  return(log_lik)
+  return(list(loglik = log_likelihood, dyn_L = dyn_L))
 
 }
+
+
+
+#' Demes likelihood for a transmission tree using Felsenstein pruning
+#'
+#' @param ttree Transmission tree
+#' @param pm Probability transition matrix between demes
+#' @param demes.prior Prior probability for the location of the root host
+log_lik_locs_felsenstein_part <- function(ttree, pm, demes.prior, dyn_L, hosts) {
+
+  # Initiate log likelihood
+  log_likelihood <- 0
+
+  demes <- ttree$demes
+  ttree <- ttree$ttree
+
+  # Number of demes
+  n_demes <- dim(pm)[1]
+
+  todo <- hosts
+
+  while (length(todo) > 0) {
+
+    todo <- todo[order(ttree[todo, 1], decreasing = T)]
+
+    host <- todo[1]
+
+    dyn_L[host, ] <- rep(0, ndemes)
+
+    # Not a leaf
+    if (host %in% ttree[, 3]) {
+
+      children <- which(ttree[, 3] == host)
+
+      if (ttree[host, 2] > 0 & !is.na(demes[host])) {
+
+        # Calculate location probabilities
+        hl <- demes[host]
+
+        dyn_L[host, hl] <- 1
+
+        for (j in 1:length(children)) {
+
+          child <- children[j]
+
+          temp_prob <- 0
+
+          for (cl in 1:n_demes) {
+
+            temp_prob <- temp_prob + pm[hl, cl] * dyn_L[child, cl]
+
+          }
+
+          dyn_L[host, hl] <- dyn_L[host, hl] * temp_prob
+
+        }
+
+        # Host is root host
+        if (ttree[host, 3] == 0) {
+
+          log_likelihood <- log(demes.prior[demes[host]] * dyn_L[host, demes[host]])
+
+        }
+
+      } else {
+
+        # Calculate location probabilities
+        for (hl in 1:n_demes) {
+
+          dyn_L[host, hl] <- 1
+
+          for (j in 1:length(children)) {
+
+            child <- children[j]
+
+            temp_prob <- 0
+
+            for (cl in 1:n_demes) {
+
+              temp_prob <- temp_prob + pm[hl, cl] * dyn_L[child, cl]
+
+            }
+
+            dyn_L[host, hl] <- dyn_L[host, hl] * temp_prob
+
+          }
+
+        }
+
+        # Host is root host
+        if (ttree[host, 3] == 0) {
+
+          log_likelihood <- log(sum(demes.prior * dyn_L[host,]))
+
+        }
+
+      }
+
+    } else {
+
+      if (!is.na(demes[host])) {
+
+        # If location known, no likelihood update for leaf
+        dyn_L[host, demes[host]] <- 1
+
+      } else {
+
+        dyn_L[host, ] <- 1
+
+      }
+
+    }
+
+    if (ttree[host, 3] > 0) {
+
+      if (!(ttree[host, 3] %in% todo)) {
+
+        todo <- c(todo, ttree[host, 3])
+
+      }
+
+    }
+
+    todo <- todo[-1]
+
+  }
+
+  return(list(loglik = log_likelihood, dyn_L = dyn_L))
+
+}
+
+
+
