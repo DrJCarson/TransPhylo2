@@ -158,6 +158,7 @@ order_hosts <- function(ctree) {
 trim_root <- function(ctree) {
 
   nam <- ctree$nam
+  demes <- ctree$demes
   ctree <- ctree$ctree
 
   repeat {
@@ -190,7 +191,7 @@ trim_root <- function(ctree) {
 
   ctree <- order_hosts(ctree)
 
-  new_ctree <- list(ctree = ctree, nam = nam)
+  new_ctree <- list(ctree = ctree, nam = nam, demes = demes)
   class(new_ctree) <- 'ctree'
 
   return(new_ctree)
@@ -207,6 +208,7 @@ trim_root <- function(ctree) {
 trunc_ctree <- function(ctree, trunc_time = NA, n_obs = NA) {
 
   nam <- ctree$nam
+  demes <- ctree$demes
   ctree <- ctree$ctree
 
   obs_idx <- which(ctree[, 2] == 0 & ctree[, 3] == 0)
@@ -349,7 +351,13 @@ trunc_ctree <- function(ctree, trunc_time = NA, n_obs = NA) {
   ctree <- order_hosts(ctree)
   nam <- nam[obs_keep]
 
-  new_ctree <- list(ctree = ctree, nam = nam)
+  if (length(demes) > 0) {
+
+    demes <- demes[obs_keep]
+
+  }
+
+  new_ctree <- list(ctree = ctree, nam = nam, demes = demes)
   class(new_ctree) <- 'ctree'
 
   return(list(ctree = new_ctree, dateT = dateT))
