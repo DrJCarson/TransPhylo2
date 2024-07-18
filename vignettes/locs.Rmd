@@ -1,0 +1,60 @@
+---
+title: "Illustration of geographical functionality"
+author: "Xavier Didelot"
+date: '`r Sys.Date()`'
+output: html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Illustration of geographical functionality}
+  %\usepackage[utf8]{inputenc}
+---
+```{r echo=F}
+knitr::opts_chunk$set(fig.width=6, fig.height=4) 
+```
+
+If you want to reproduce exactly the same results as the ones shown in this tutorial, you need to set the seed of your random number generator to zero:
+```{r}
+library(TransPhylo2)
+set.seed(0)
+```
+
+We simulate an outbreak that starts in 2005 and which and is observed up to 2008, across two locations:
+
+```{r}
+simu <- simulateOutbreak(kappa=0.25,lambda=0.25,pi=0.25,off.r=5,w.shape=10,
+                         w.scale=0.1,dateStartOutbreak=2005,dateT=2008,nLocs=2,rho=0.8)
+```
+
+This simulation contains both the transmission tree between infected hosts and the within-host phylogenetic tree of each host. This can be visualised as a colored phlogenetic tree, where each host is represented by a unique color:
+
+```{r}
+plot(simu)
+plotLocsCTree(simu)
+```
+
+The transmission tree can be extracted and plotted separately from the phylogeny:
+
+
+```{r}
+ttree=extractTTree(simu)
+plot(ttree,type='detailed',w.shape=10,w.scale=0.1)
+```
+
+The phylogenetic tree can be extracted and plotted separately from the transmission tree:
+
+```{r}
+ptree<-extractPTree(simu)
+p<-phyloFromPTree(ptree)
+plot(p)
+ape::axisPhylo(backward = F)
+```
+
+
+```{r,results='hide'}
+ptree<-ptreeFromPhylo(p,dateLastSample=dateLastSample(simu),locations=simu$locations)
+res<-inferTTree(ptree,mcmcIterations=1000,w.shape=10,w.scale=0.1,dateT=2008,update.rho=T)
+```
+
+```{r}
+plot(res)
+```

@@ -7,7 +7,10 @@ remove_add <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1, epsilon =
 
   # Extract ctree
   nam <- ctree$nam
+  demes <- ctree$demes
   ctree <- ctree$ctree
+
+  host_map <- 1:max(ctree[, 4])
 
   # Sample rows and host
   obs_idx <- which(ctree[, 2] == 0 & ctree[, 3] == 0)
@@ -570,17 +573,19 @@ remove_add <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1, epsilon =
 
     }
 
+    host_map <- order(unique(ctree[, 4])[1:max(ctree[, 4])])[host_map]
+
     ctree <- order_hosts(ctree)
 
     prop_hosts <- c(ctree[tar_row, 4], ctree[ctree[tar_row, 2], 4])
 
   }
 
-  new_ctree <- list(ctree = ctree, nam = nam)
+  new_ctree <- list(ctree = ctree, nam = nam, demes = demes)
   class(new_ctree) <- 'ctree'
 
   return(list(ctree = new_ctree, prop_density = prop_density, rev_density = rev_density, is_possible = 1,
-              curr_hosts = curr_hosts, prop_hosts = prop_hosts))
+              curr_hosts = curr_hosts, prop_hosts = prop_hosts, host_map = host_map))
 
 }
 
@@ -594,7 +599,10 @@ add_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) {
 
   # Extract ctree
   nam <- ctree$nam
+  demes <- ctree$demes
   ctree <- ctree$ctree
+
+  host_map <- 1:max(ctree[, 4])
 
   # Total number of hosts
   n_hosts <- max(ctree[, 4])
@@ -998,6 +1006,8 @@ add_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) {
   # Update hosts
   if (new_host <= max(ctree[, 4])) {
 
+    host_map[which(host_map >= new_host)] <- host_map[which(host_map >= new_host)] + 1
+
     ctree[which(ctree[, 4] >= new_host), 4] <- ctree[which(ctree[, 4] >= new_host), 4] + 1
 
   }
@@ -1059,6 +1069,8 @@ add_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) {
 
   }
 
+  host_map <- order(unique(ctree[, 4])[1:max(ctree[, 4])])[host_map]
+
   # Order hosts
   ctree <- order_hosts(ctree)
 
@@ -1083,11 +1095,11 @@ add_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) {
   # Log density of reverse move
   rev_density <- -log(length(unique(tr_host2)))
 
-  new_ctree <- list(ctree = ctree, nam = nam)
+  new_ctree <- list(ctree = ctree, nam = nam, demes = demes)
   class(new_ctree) <- 'ctree'
 
   return(list(ctree = new_ctree, prop_density = prop_density, rev_density = rev_density, is_possible = 1,
-              curr_hosts = curr_hosts, prop_hosts = prop_hosts))
+              curr_hosts = curr_hosts, prop_hosts = prop_hosts, host_map = host_map))
 
 }
 
@@ -1099,7 +1111,11 @@ remove_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) 
 
   # Extract ctree
   nam <- ctree$nam
+  demes <- ctree$demes
   ctree <- ctree$ctree
+
+  # Track how host numbers change
+  host_map <- 1:max(ctree[, 4])
 
   # Sample rows and host
   obs_idx <- which(ctree[, 2] == 0 & ctree[, 3] == 0)
@@ -1115,7 +1131,7 @@ remove_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) 
 
   if (length(tr_idx) == 0) {
 
-    new_ctree <- list(ctree = ctree, nam = nam)
+    new_ctree <- list(ctree = ctree, nam = nam, demes = demes)
     class(new_ctree) <- 'ctree'
 
     return(list(ctree = new_ctree, prop_density = 1, rev_density = 1, is_possible = 0,
@@ -1184,6 +1200,9 @@ remove_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) 
   ctree[, 4][which(ctree[, 4] > sam_host2)] <-
     ctree[, 4][which(ctree[, 4] > sam_host2)] - 1
 
+  host_map[sam_host2] <- NA
+
+  host_map[which(host_map > sam_host2)] <- host_map[which(host_map > sam_host2)] - 1
 
   rev_density <- log(1 / max(ctree[, 4]))
 
@@ -1577,16 +1596,18 @@ remove_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) 
 
   rev_density <- rev_density - log(tr_lin[[sam_lin]][[sam_clust]]$length)
 
+  host_map <- order(unique(ctree[, 4])[1:max(ctree[, 4])])[host_map]
+
   # Order hosts
   ctree <- order_hosts(ctree)
 
   prop_hosts <- ctree[rows_host[1], 4]
 
-  new_ctree <- list(ctree = ctree, nam = nam)
+  new_ctree <- list(ctree = ctree, nam = nam, demes = demes)
   class(new_ctree) <- 'ctree'
 
   return(list(ctree = new_ctree, prop_density = prop_density, rev_density = rev_density, is_possible = 1,
-              curr_hosts = curr_hosts, prop_hosts = prop_hosts))
+              curr_hosts = curr_hosts, prop_hosts = prop_hosts, host_map = host_map))
 
 }
 
