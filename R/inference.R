@@ -802,6 +802,62 @@ inferTTree <- function(ptree,
 
   }#End of main MCMC loop
 
+  update.vec <- c(update.r, update.p, update.pi, update.rho, update.kappa, update.lambda)
+
+  mcmcdim <- sum(as.numeric(update.vec))
+
+  cnames <- c("r", "p", "pi", "rho", "kappa", "lambda")[which(update.vec)]
+
+  fulltrace <- array(dim = c(mcmcIterations, mcmcdim), dimnames = list(NULL, cnames))
+
+  d <- 1
+
+  if (update.r) {
+
+    fulltrace[, d] <- trace.r
+    d <- d + 1
+
+  }
+
+  if (update.p) {
+
+    fulltrace[, d] <- trace.p
+    d <- d + 1
+
+  }
+
+  if (update.pi) {
+
+    fulltrace[, d] <- trace.pi
+    d <- d + 1
+
+  }
+
+  if (update.rho) {
+
+    fulltrace[, d] <- trace.rho
+    d <- d + 1
+
+  }
+
+  if (update.kappa) {
+
+    fulltrace[, d] <- trace.kappa
+    d <- d + 1
+
+  }
+
+  if (update.lambda) {
+
+    fulltrace[, d] <- trace.lambda
+    d <- d + 1
+
+  }
+
+  fulltrace <- coda::as.mcmc(fulltrace)
+
+  record[[1]]$fulltrace <- fulltrace
+
   class(record)<-'resTransPhylo'
   return(record)
 

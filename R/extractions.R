@@ -90,3 +90,15 @@ extractTTree <- function(ctree)  {
   return(l)
 
 }
+
+
+#' Extracts full parameter trace plots from a resTransPhylo object
+#'
+#' @param record resTransPhylo object
+#'
+#' @export
+extractParmTrace <- function(record) {
+
+  return(record[[1]]$fulltrace)
+
+}

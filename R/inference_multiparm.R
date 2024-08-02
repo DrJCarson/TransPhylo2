@@ -909,6 +909,150 @@ inferTTreemulti <- function(ptree,
 
   }#End of main MCMC loop
 
+  mcmcdim <- tr.dim * as.numeric(update.r) + tr.dim * as.numeric(update.p) +
+    pi.dim * as.numeric(update.pi) + rho.dim * as.numeric(update.rho) +
+    as.numeric(update.kappa) + as.numeric(update.lambda)
+
+  cnames <- character(mcmcdim)
+
+  d <- 1
+
+  if (update.r) {
+
+    for (de in  1:tr.dim) {
+
+      cnames[d] <- paste("r", de, sep = "")
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.p) {
+
+    for (de in  1:tr.dim) {
+
+      cnames[d] <- paste("p", de, sep = "")
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.pi) {
+
+    for (de in  1:pi.dim) {
+
+      cnames[d] <- paste("pi", de, sep = "")
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.rho) {
+
+    for (de in  1:rho.dim) {
+
+      cnames[d] <- paste("rho", de, sep = "")
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.kappa) {
+
+    cnames[d] <- "kappa"
+
+    d <- d + 1
+
+  }
+
+  if (update.kappa) {
+
+    cnames[d] <- "lambda"
+
+    d <- d + 1
+
+  }
+
+  fulltrace <- array(dim = c(mcmcIterations, mcmcdim), dimnames = list(NULL, cnames))
+
+  d <- 1
+
+  if (update.r) {
+
+    for (de in  1:tr.dim) {
+
+      fulltrace[, d] <- trace.r[, de]
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.p) {
+
+    for (de in  1:tr.dim) {
+
+      fulltrace[, d] <- trace.p[, de]
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.pi) {
+
+    for (de in  1:pi.dim) {
+
+      fulltrace[, d] <- trace.pi[, de]
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.rho) {
+
+    for (de in  1:rho.dim) {
+
+      fulltrace[, d] <- trace.rho[, de]
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.kappa) {
+
+    fulltrace[, d] <- trace.kappa
+
+    d <- d + 1
+
+  }
+
+  if (update.lambda) {
+
+    fulltrace[, d] <- trace.lambda
+
+    d <- d + 1
+
+  }
+
+  fulltrace <- coda::as.mcmc(fulltrace)
+
+  record[[1]]$fulltrace <- fulltrace
+
   class(record)<-'resTransPhylo'
   return(record)
 
