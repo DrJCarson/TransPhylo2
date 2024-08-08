@@ -1377,7 +1377,7 @@ sim_ongoing_lim_hosts <- function(off.r = 2,
   l <- list(ctree = ctree, nam = paste(nam_host, ".", nam_num, sep = ""))
   class(l) <- 'ctree'
 
-  l <- trim_root(l)
+#  l <- trim_root(l)
 
   return(list(ctree = l, obs.end = 0.5 * (t_lim1 + t_lim2), attempts = attempts))
 

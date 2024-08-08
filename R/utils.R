@@ -181,6 +181,8 @@ trim_root <- function(ctree) {
 
       }
 
+      demes <- demes[-rem_host]
+
     } else {
 
       break

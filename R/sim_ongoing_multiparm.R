@@ -979,7 +979,7 @@ sim_ongoing_multi_lim_obs <- function(off.r = 2,
 
   l <- trim_root(l)
 
-  l$demes <- demes
+#  l$demes <- demes
 
   return(list(ctree = l, obs.end = 0.5 * (t_lim1 + t_lim2), attempts = attempts))
 
@@ -1405,7 +1405,7 @@ sim_ongoing_multi_lim_hosts <- function(off.r = 2,
 
   l <- trim_root(l)
 
-  l$demes <- demes
+  #l$demes <- demes
 
   return(list(ctree = l, obs.end = 0.5 * (t_lim1 + t_lim2), attempts = attempts))
 
