@@ -576,6 +576,17 @@ inferTTree <- function(ptree,
 
       ss.lam.tr <- max(c(ss.min, ss.lam.tr * exp((ss.del.tr / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.tr))) - ss.a))))
 
+      update.idx.coa <- c(update.r, update.p, update.pi)
+
+      zero.rc <- which(update.idx.coa == 0)
+
+      if (length(zero.rc) > 0) {
+
+        mcmc.cov.tr[zero.rc, ] <- 0
+        mcmc.cov.tr[, zero.rc] <- 0
+
+      }
+
     }
 
     if (ss.d.coa > 0) {
@@ -660,6 +671,17 @@ inferTTree <- function(ptree,
       }
 
       ss.lam.coa <- max(c(ss.min, ss.lam.coa * exp((ss.del.coa / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.coa))) - ss.a))))
+
+      update.idx <- c(update.kappa, update.lambda)
+
+      zero.rc <- which(update.idx == 0)
+
+      if (length(zero.rc) > 0) {
+
+        mcmc.cov.coa[zero.rc, ] <- 0
+        mcmc.cov.coa[, zero.rc] <- 0
+
+      }
 
     }
 
@@ -857,6 +879,60 @@ inferTTree <- function(ptree,
   fulltrace <- coda::as.mcmc(fulltrace)
 
   record[[1]]$fulltrace <- fulltrace
+
+  finalstate <- list()
+  finalstate$ptree <- ptree
+  finalstate$dateS <- dateS
+  finalstate$dateT <- dateT
+  finalstate$r.shape <- r.shape
+  finalstate$r.scale <- r.scale
+  finalstate$p.shape1 <- p.shape1
+  finalstate$p.shape2 <- p.shape2
+  finalstate$pi.shape1 <- pi.shape1
+  finalstate$pi.shape2 <- pi.shape2
+  finalstate$kappa.shape <- kappa.shape
+  finalstate$kappa.scale <- kappa.scale
+  finalstate$lambda.shape <- lambda.shape
+  finalstate$lambda.scale <- lambda.scale
+  finalstate$rho.shape1 <- rho.shape1
+  finalstate$rho.shape2 <- rho.shape2
+  finalstate$w.shape <- w.shape
+  finalstate$w.scale <- w.scale
+  finalstate$ws.shape <- ws.shape
+  finalstate$ws.scale <- ws.scale
+  finalstate$mcmc.tree.updates <- mcmc.tree.updates
+  finalstate$ctree <- ctree
+  finalstate$grid.delta <- grid.delta
+  finalstate$ndemes <- ndemes
+  finalstate$demes.prior <- demes.prior
+  finalstate$parms.init.tr <- parms.init.tr
+  finalstate$parms.init.coa <- parms.init.coa
+  finalstate$parms.init.rho <- parms.init.rho
+  finalstate$parms.curr.tr <- parms.curr.tr
+  finalstate$parms.curr.coa <- parms.curr.coa
+  finalstate$parms.curr.rho <- parms.curr.rho
+  finalstate$mcmc.mu.tr <- mcmc.mu.tr
+  finalstate$mcmc.mu.coa <- mcmc.mu.coa
+  finalstate$mcmc.mu.rho <- mcmc.mu.rho
+  finalstate$mcmc.cov.tr <- mcmc.cov.tr
+  finalstate$mcmc.cov.coa <- mcmc.cov.coa
+  finalstate$mcmc.cov.rho <- mcmc.cov.rho
+  finalstate$update.r <- update.r
+  finalstate$update.p <- update.p
+  finalstate$update.pi <- update.pi
+  finalstate$update.rho <- update.rho
+  finalstate$update.kappa <- update.kappa
+  finalstate$update.lambda <- update.lambda
+  finalstate$update.ctree <- update.ctree
+  finalstate$mcmcIterations <- mcmcIterations
+  finalstate$ss.lam.tr <- ss.lam.tr
+  finalstate$ss.lam.coa <- ss.lam.coa
+  finalstate$ss.lam.rho <- ss.lam.rho
+  finalstate$grid <- grid
+  finalstate$Random.seed <- .Random.seed
+  finalstate$case <- 1
+
+  record[[1]]$finalstate <- finalstate
 
   class(record)<-'resTransPhylo'
   return(record)

@@ -855,6 +855,17 @@ inferTTreemulti <- function(ptree,
 
       ss.lam.coa <- max(c(ss.min, ss.lam.coa * exp((ss.del.coa / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.coa))) - ss.a))))
 
+      update.idx.coa <- c(update.kappa, update.lambda)
+
+      zero.rc <- which(update.idx.coa == 0)
+
+      if (length(zero.rc) > 0) {
+
+        mcmc.cov.coa[zero.rc, ] <- 0
+        mcmc.cov.coa[, zero.rc] <- 0
+
+      }
+
     }
 
 
@@ -1101,6 +1112,7 @@ inferTTreemulti <- function(ptree,
   finalstate$ss.lam.coa <- ss.lam.coa
   finalstate$grid <- grid
   finalstate$Random.seed <- .Random.seed
+  finalstate$case <- 2
 
   record[[1]]$finalstate <- finalstate
 
