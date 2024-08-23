@@ -561,6 +561,17 @@ inferTTreecont <- function(prevrun,
 
             ss.lam.tr[k] <- max(c(ss.min, ss.lam.tr[k] * exp((ss.del.tr[k] / (ss.nstart + i2)) * (min(c(1, exp(ss.alpha.tr))) - ss.a))))
 
+            update.idx.tr <- updt_idx
+
+            zero.rc <- which(update.idx.tr == 0)
+
+            if (length(zero.rc) > 0) {
+
+              mcmc.cov.tr[[k]][zero.rc, ] <- 0
+              mcmc.cov.tr[[k]][, zero.rc] <- 0
+
+            }
+
           }
 
         }
@@ -649,6 +660,17 @@ inferTTreecont <- function(prevrun,
         }
 
         ss.lam.coa <- max(c(ss.min, ss.lam.coa * exp((ss.del.coa / (ss.nstart + i2)) * (min(c(1, exp(ss.alpha.coa))) - ss.a))))
+
+        update.idx.coa <- c(update.kappa, update.lambda)
+
+        zero.rc <- which(update.idx.coa == 0)
+
+        if (length(zero.rc) > 0) {
+
+          mcmc.cov.coa[zero.rc, ] <- 0
+          mcmc.cov.coa[, zero.rc] <- 0
+
+        }
 
       }
 
@@ -768,7 +790,7 @@ inferTTreecont <- function(prevrun,
 
     }
 
-    if (update.kappa) {
+    if (update.lambda) {
 
       cnames[d] <- "lambda"
 

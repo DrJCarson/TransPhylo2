@@ -766,6 +766,18 @@ inferTTreemulti <- function(ptree,
 
           ss.lam.tr[k] <- max(c(ss.min, ss.lam.tr[k] * exp((ss.del.tr[k] / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.tr))) - ss.a))))
 
+          update.idx.tr <- updt_idx
+
+          zero.rc <- which(update.idx.tr == 0)
+
+          if (length(zero.rc) > 0) {
+
+            mcmc.cov.tr[zero.rc, ] <- 0
+            mcmc.cov.tr[, zero.rc] <- 0
+
+          }
+
+
         }
 
       }
@@ -984,7 +996,7 @@ inferTTreemulti <- function(ptree,
 
   }
 
-  if (update.kappa) {
+  if (update.lambda) {
 
     cnames[d] <- "lambda"
 
