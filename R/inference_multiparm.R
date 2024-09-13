@@ -324,6 +324,8 @@ inferTTreemulti <- function(ptree,
 
   }
 
+  mcmc.mu.coa <- NA
+
   if (is.na(sum(mcmc.cov.coa))) {
 
     mcmc.cov.coa <- diag(c(0.1 ^ 2 * as.numeric(update.kappa),

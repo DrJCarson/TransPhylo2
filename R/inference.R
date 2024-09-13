@@ -240,6 +240,10 @@ inferTTree <- function(ptree,
   update.tr <- c(update.r, update.p, update.pi)
   update.coa <- c(update.kappa, update.lambda)
 
+  mcmc.mu.tr <- NA
+  mcmc.mu.coa <- NA
+  mcmc.mu.rho <- NA
+
   ss.d.tr <- sum(as.numeric(update.tr))
   ss.d.coa <- sum(as.numeric(update.coa))
   ss.d.rho <- sum(as.numeric(update.rho))
