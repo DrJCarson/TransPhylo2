@@ -17,8 +17,6 @@ inferTTree(
   mcmcIterations = 12000,
   thinning = 1,
   mcmc.tree.updates = NA,
-  mcmc.cov.tr = NA,
-  mcmc.cov.coa = NA,
   init.r = 2,
   init.p = 0.5,
   init.pi = 0.5,
@@ -78,10 +76,6 @@ inferTTree(
 
 \item{mcmc.tree.updates}{Number of transmission tree updates per parameter update}
 
-\item{mcmc.cov.tr}{Initial proposal covariance for transmission parameters}
-
-\item{mcmc.cov.coa}{Initial proposal covariance for coalescent parameters}
-
 \item{init.r}{Starting value of offspring distribution parameter r}
 
 \item{init.p}{Starting value of offspring distribution parameter p}
@@ -136,7 +130,7 @@ inferTTree(
 
 \item{rho.shape2}{Shape2 parameter for the Beta prior of parameter rho}
 
-\item{demes.prior}{Prior probability for the location of the root host}
+\item{demes.prior}{Prior probability for the deme of the root host}
 
 \item{dateS}{Start date for observations}
 

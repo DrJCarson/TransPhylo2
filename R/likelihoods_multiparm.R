@@ -102,7 +102,9 @@ dyn_U <- function(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta = 1 
 #' @param obs.start Start time of outbreak sampling
 #' @param obs.end Stop time of outbreak sampling
 #' @param grid.delta Discrete time step
-#' @param hosts Hosts over which likelihood is calculated
+#' @param ndemes Number of demes
+#' @param pm Transmission probability matrix between demes
+#' @param demes.prior Prior probability for the deme of the root host
 log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.shape, w.scale, ws.shape,
                           ws.scale, obs.start, obs.end, grid.delta, ndemes, pm, demes.prior) {
 
@@ -270,6 +272,10 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 #' @param obs.start Start time of outbreak sampling
 #' @param obs.end Stop time of outbreak sampling
 #' @param grid.delta Discrete time step
+#' @param ndemes Number of demes
+#' @param pm Transmission probability matrix between demes
+#' @param demes.prior Prior probability for the deme of the root host
+#' @param dyn_L Existing likelihood matrix from the dynamic programming algorithm
 #' @param hosts Hosts over which likelihood is calculated
 log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi, w.shape, w.scale, ws.shape,
                                     ws.scale, obs.start, obs.end, grid.delta, ndemes, pm, demes.prior,

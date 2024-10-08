@@ -11,8 +11,6 @@
 #' @param mcmcIterations Number of MCMC iterations to run the algorithm for
 #' @param thinning MCMC thinning interval between two sampled iterations
 #' @param mcmc.tree.updates Number of transmission tree updates per parameter update
-#' @param mcmc.cov.tr Initial proposal covariance for transmission parameters
-#' @param mcmc.cov.coa Initial proposal covariance for coalescent parameters
 #' @param init.r Starting value of offspring distribution parameter r
 #' @param init.p Starting value of offspring distribution parameter p
 #' @param init.pi Starting value of sampling proportion pi
@@ -28,22 +26,25 @@
 #' @param update.rho Whether to update parameter rho
 #' @param update.ctree Whether to update the transmission tree
 #' @param ndemes Number of possible locations
-#' @param r.shape Shape parameter for the Gamma prior of parameter r
-#' @param r.scale Scale parameter for the Gamma prior of parameter r
-#' @param p.shape1 Shape1 parameter for the Beta prior of parameter p
-#' @param p.shape2 Shape2 parameter for the Beta prior of parameter p
-#' @param pi.shape1 Shape1 parameter for the Beta prior of parameter pi
-#' @param pi.shape2 Shape2 parameter for the Beta prior of parameter pi
+#' @param r.shape Shape parameter(s) for the Gamma prior of parameter r
+#' @param r.scale Scale parameter(s) for the Gamma prior of parameter r
+#' @param p.shape1 Shape1 parameter(s) for the Beta prior of parameter p
+#' @param p.shape2 Shape2 parameter(s) for the Beta prior of parameter p
+#' @param pi.shape1 Shape1 parameter(s) for the Beta prior of parameter pi
+#' @param pi.shape2 Shape2 parameter(s) for the Beta prior of parameter pi
 #' @param kappa.shape Shape parameter for the Gamma prior of parameter kappa
 #' @param kappa.scale Scale parameter for the Gamma prior of parameter kappa
 #' @param lambda.shape Shape parameter for the Gamma prior of parameter lambda
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
-#' @param rho.shape1 Shape1 parameter for the Beta prior of parameter rho
-#' @param rho.shape2 Shape2 parameter for the Beta prior of parameter rho
-#' @param demes.prior Prior probability for the location of the root host
+#' @param rho.shape1 Shape1 parameter(s) for the Beta prior of parameter rho
+#' @param rho.shape2 Shape2 parameter(s) for the Beta prior of parameter rho
+#' @param demes.prior Prior probability for the deme of the root host
 #' @param dateS Start date for observations
 #' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
+#' @param tr.demes Vector of length ndemes indicating which transmission parameters to use for each deme (Default: Each deme uses a separate parameter)
+#' @param pi.demes Vector of length ndemes indicating which pi parameters to use for each deme (Default: Each deme uses a separate parameter)
+#' @param rho.demes Vector of length ndemes indicating which rho parameters to use for each deme (Default: Each deme uses a separate parameter)
 #' @param verbose Whether or not to use verbose mode (default is false)
 #' @export
 inferTTreemulti <- function(ptree,
@@ -58,8 +59,6 @@ inferTTreemulti <- function(ptree,
                             mcmcIterations = 12000,
                             thinning = 1,
                             mcmc.tree.updates = NA,
-                            mcmc.cov.tr = NA,
-                            mcmc.cov.coa = NA,
                             init.r = 2,
                             init.p = 0.5,
                             init.pi = 0.5,
@@ -254,9 +253,33 @@ inferTTreemulti <- function(ptree,
 
   }
 
+  if (length(r.shape) == 1) {
+
+    r.shape <- rep(r.shape, tr.dim)
+
+  }
+
+  if (length(r.scale) == 1) {
+
+    r.scale <- rep(r.scale, tr.dim)
+
+  }
+
   if (length(init.p) == 1) {
 
     init.p <- rep(init.p, tr.dim)
+
+  }
+
+  if (length(p.shape1) == 1) {
+
+    p.shape1 <- rep(p.shape1, tr.dim)
+
+  }
+
+  if (length(p.shape2) == 1) {
+
+    p.shape2 <- rep(p.shape2, tr.dim)
 
   }
 
@@ -266,9 +289,33 @@ inferTTreemulti <- function(ptree,
 
   }
 
+  if (length(pi.shape1) == 1) {
+
+    pi.shape1 <- rep(pi.shape1, pi.dim)
+
+  }
+
+  if (length(pi.shape2) == 1) {
+
+    pi.shape2 <- rep(pi.shape2, pi.dim)
+
+  }
+
   if (length(init.rho) == 1) {
 
     init.rho <- rep(init.rho, rho.dim)
+
+  }
+
+  if (length(rho.shape1) == 1) {
+
+    rho.shape1 <- rep(rho.shape1, rho.dim)
+
+  }
+
+  if (length(rho.shape2) == 1) {
+
+    rho.shape2 <- rep(rho.shape2, rho.dim)
 
   }
 
@@ -309,7 +356,7 @@ inferTTreemulti <- function(ptree,
 
   mcmc.mu.tr <- list()
 
-  if (is.na(sum(mcmc.cov.tr))) {
+#  if (is.na(sum(mcmc.cov.tr))) {
 
     mcmc.cov.tr <- list()
 
@@ -322,14 +369,16 @@ inferTTreemulti <- function(ptree,
 
     }
 
-  }
+#  }
 
-  if (is.na(sum(mcmc.cov.coa))) {
+  mcmc.mu.coa <- NA
+
+#  if (is.na(sum(mcmc.cov.coa))) {
 
     mcmc.cov.coa <- diag(c(0.1 ^ 2 * as.numeric(update.kappa),
                            0.1 ^ 2 * as.numeric(update.lambda)))
 
-  }
+#  }
 
   ss.a <- 0.234
 
@@ -643,26 +692,26 @@ inferTTreemulti <- function(ptree,
             if (k <= tr.dim) {
 
               ss.alpha.tr <- ss.alpha.tr +
-                (dgamma(parms.prop.tr[["r"]], shape = r.shape, scale = r.scale, log = T) -
-                   dgamma(parms.curr.tr[["r", k]], shape = r.shape, scale = r.scale, log = T)) +
-                (dbeta(parms.prop.tr[["p"]], shape1 = p.shape1, shape2 = p.shape2, log = T) -
-                   dbeta(parms.curr.tr[["p", k]], shape1 = p.shape1, shape2 = p.shape2, log = T))
+                (dgamma(parms.prop.tr[["r"]], shape = r.shape[k], scale = r.scale[k], log = T) -
+                   dgamma(parms.curr.tr[["r", k]], shape = r.shape[k], scale = r.scale[k], log = T)) +
+                (dbeta(parms.prop.tr[["p"]], shape1 = p.shape1[k], shape2 = p.shape2[k], log = T) -
+                   dbeta(parms.curr.tr[["p", k]], shape1 = p.shape1[k], shape2 = p.shape2[k], log = T))
 
             }
 
             if (k <= pi.dim) {
 
               ss.alpha.tr <- ss.alpha.tr +
-                (dbeta(parms.prop.tr[["pi"]], shape1 = pi.shape1, shape2 = pi.shape2, log = T) -
-                   dbeta(parms.curr.tr[["pi", k]], shape1 = pi.shape1, shape2 = pi.shape2, log = T))
+                (dbeta(parms.prop.tr[["pi"]], shape1 = pi.shape1[k], shape2 = pi.shape2[k], log = T) -
+                   dbeta(parms.curr.tr[["pi", k]], shape1 = pi.shape1[k], shape2 = pi.shape2[k], log = T))
 
             }
 
             if (k <= rho.dim) {
 
               ss.alpha.tr <- ss.alpha.tr +
-                (dbeta(parms.prop.tr[["rho"]], shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
-                   dbeta(parms.curr.tr[["rho", k]], shape1 = rho.shape1, shape2 = rho.shape2, log = T))
+                (dbeta(parms.prop.tr[["rho"]], shape1 = rho.shape1[k], shape2 = rho.shape2[k], log = T) -
+                   dbeta(parms.curr.tr[["rho", k]], shape1 = rho.shape1[k], shape2 = rho.shape2[k], log = T))
 
             }
 
@@ -766,6 +815,18 @@ inferTTreemulti <- function(ptree,
 
           ss.lam.tr[k] <- max(c(ss.min, ss.lam.tr[k] * exp((ss.del.tr[k] / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.tr))) - ss.a))))
 
+          update.idx.tr <- updt_idx
+
+          zero.rc <- which(update.idx.tr == 0)
+
+          if (length(zero.rc) > 0) {
+
+            mcmc.cov.tr[zero.rc, ] <- 0
+            mcmc.cov.tr[, zero.rc] <- 0
+
+          }
+
+
         }
 
       }
@@ -854,6 +915,17 @@ inferTTreemulti <- function(ptree,
       }
 
       ss.lam.coa <- max(c(ss.min, ss.lam.coa * exp((ss.del.coa / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.coa))) - ss.a))))
+
+      update.idx.coa <- c(update.kappa, update.lambda)
+
+      zero.rc <- which(update.idx.coa == 0)
+
+      if (length(zero.rc) > 0) {
+
+        mcmc.cov.coa[zero.rc, ] <- 0
+        mcmc.cov.coa[, zero.rc] <- 0
+
+      }
 
     }
 
@@ -973,7 +1045,7 @@ inferTTreemulti <- function(ptree,
 
   }
 
-  if (update.kappa) {
+  if (update.lambda) {
 
     cnames[d] <- "lambda"
 
@@ -1052,6 +1124,58 @@ inferTTreemulti <- function(ptree,
   fulltrace <- coda::as.mcmc(fulltrace)
 
   record[[1]]$fulltrace <- fulltrace
+
+  finalstate <- list()
+  finalstate$ptree <- ptree
+  finalstate$dateS <- dateS
+  finalstate$dateT <- dateT
+  finalstate$r.shape <- r.shape
+  finalstate$r.scale <- r.scale
+  finalstate$p.shape1 <- p.shape1
+  finalstate$p.shape2 <- p.shape2
+  finalstate$pi.shape1 <- pi.shape1
+  finalstate$pi.shape2 <- pi.shape2
+  finalstate$kappa.shape <- kappa.shape
+  finalstate$kappa.scale <- kappa.scale
+  finalstate$lambda.shape <- lambda.shape
+  finalstate$lambda.scale <- lambda.scale
+  finalstate$rho.shape1 <- rho.shape1
+  finalstate$rho.shape2 <- rho.shape2
+  finalstate$w.shape <- w.shape
+  finalstate$w.scale <- w.scale
+  finalstate$ws.shape <- ws.shape
+  finalstate$ws.scale <- ws.scale
+  finalstate$mcmc.tree.updates <- mcmc.tree.updates
+  finalstate$ctree <- ctree
+  finalstate$grid.delta <- grid.delta
+  finalstate$ndemes <- ndemes
+  finalstate$demes.prior <- demes.prior
+  finalstate$tr.demes <- tr.demes
+  finalstate$pi.demes <- pi.demes
+  finalstate$rho.demes <- rho.demes
+  finalstate$parms.init.tr <- parms.init.tr
+  finalstate$parms.init.coa <- parms.init.coa
+  finalstate$parms.curr.tr <- parms.curr.tr
+  finalstate$parms.curr.coa <- parms.curr.coa
+  finalstate$mcmc.mu.tr <- mcmc.mu.tr
+  finalstate$mcmc.mu.coa <- mcmc.mu.coa
+  finalstate$mcmc.cov.tr <- mcmc.cov.tr
+  finalstate$mcmc.cov.coa <- mcmc.cov.coa
+  finalstate$update.r <- update.r
+  finalstate$update.p <- update.p
+  finalstate$update.pi <- update.pi
+  finalstate$update.rho <- update.rho
+  finalstate$update.kappa <- update.kappa
+  finalstate$update.lambda <- update.lambda
+  finalstate$update.ctree <- update.ctree
+  finalstate$mcmcIterations <- mcmcIterations
+  finalstate$ss.lam.tr <- ss.lam.tr
+  finalstate$ss.lam.coa <- ss.lam.coa
+  finalstate$grid <- grid
+  finalstate$Random.seed <- .Random.seed
+  finalstate$case <- 2
+
+  record[[1]]$finalstate <- finalstate
 
   class(record)<-'resTransPhylo'
   return(record)

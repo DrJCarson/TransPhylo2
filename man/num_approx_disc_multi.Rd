@@ -41,6 +41,8 @@ num_approx_disc_multi(
 \item{obs.end}{End date for observations}
 
 \item{ndemes}{Number of demes}
+
+\item{pm}{Transmission probability matrix between demes}
 }
 \description{
 Numeric approximations (discretised) of branching process

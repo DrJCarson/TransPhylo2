@@ -59,7 +59,17 @@ log_lik_ttree <- function(ttree, grid, fn_list, off.r, off.p, pi, w.shape, w.sca
 
     if (ttree[i, 3] == 0) {
 
-      log_lik <- log_lik - log(1 - omega_int)
+      if (omega_int < (1 - 1e-9)) {
+
+        log_lik <- log_lik - log(1 - omega_int)
+
+      } else {
+
+        log_lik <- -Inf
+
+        return(log_lik)
+
+      }
 
     }
 
@@ -350,6 +360,8 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
 #' @param ttree Transmission tree
 #' @param pm Probability transition matrix between demes
 #' @param demes.prior Prior probability for the location of the root host
+#' @param dyn_L Existing likelihood matrix from the dynamic programming algorithm
+#' @param hosts Hosts over which likelihood is calculated
 log_lik_locs_felsenstein_part <- function(ttree, pm, demes.prior, dyn_L, hosts) {
 
   # Initiate log likelihood

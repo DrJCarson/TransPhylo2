@@ -11,8 +11,6 @@
 #' @param mcmcIterations Number of MCMC iterations to run the algorithm for
 #' @param thinning MCMC thinning interval between two sampled iterations
 #' @param mcmc.tree.updates Number of transmission tree updates per parameter update
-#' @param mcmc.cov.tr Initial proposal covariance for transmission parameters
-#' @param mcmc.cov.coa Initial proposal covariance for coalescent parameters
 #' @param init.r Starting value of offspring distribution parameter r
 #' @param init.p Starting value of offspring distribution parameter p
 #' @param init.pi Starting value of sampling proportion pi
@@ -40,7 +38,7 @@
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
 #' @param rho.shape1 Shape1 parameter for the Beta prior of parameter rho
 #' @param rho.shape2 Shape2 parameter for the Beta prior of parameter rho
-#' @param demes.prior Prior probability for the location of the root host
+#' @param demes.prior Prior probability for the deme of the root host
 #' @param dateS Start date for observations
 #' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
@@ -58,8 +56,6 @@ inferTTree <- function(ptree,
                         mcmcIterations = 12000,
                         thinning = 1,
                         mcmc.tree.updates = NA,
-                        mcmc.cov.tr = NA,
-                        mcmc.cov.coa = NA,
                         init.r = 2,
                         init.p = 0.5,
                         init.pi = 0.5,
@@ -183,20 +179,20 @@ inferTTree <- function(ptree,
 
   }
 
-  if (is.na(sum(mcmc.cov.tr))) {
+#  if (is.na(sum(mcmc.cov.tr))) {
 
     mcmc.cov.tr <- diag(c(0.5 ^ 2 * as.numeric(update.r),
                           0.25 ^ 2 * as.numeric(update.p),
                           0.25 ^ 2 * as.numeric(update.pi)))
 
-  }
+#  }
 
-  if (is.na(sum(mcmc.cov.coa))) {
+#  if (is.na(sum(mcmc.cov.coa))) {
 
     mcmc.cov.coa <- diag(c(0.1 ^ 2 * as.numeric(update.kappa),
                            0.1 ^ 2 * as.numeric(update.lambda)))
 
-  }
+#  }
 
   mcmc.cov.rho <- 0.1 ^ 2 * as.numeric(update.rho)
 
@@ -239,6 +235,10 @@ inferTTree <- function(ptree,
 
   update.tr <- c(update.r, update.p, update.pi)
   update.coa <- c(update.kappa, update.lambda)
+
+  mcmc.mu.tr <- NA
+  mcmc.mu.coa <- NA
+  mcmc.mu.rho <- NA
 
   ss.d.tr <- sum(as.numeric(update.tr))
   ss.d.coa <- sum(as.numeric(update.coa))
@@ -576,6 +576,17 @@ inferTTree <- function(ptree,
 
       ss.lam.tr <- max(c(ss.min, ss.lam.tr * exp((ss.del.tr / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.tr))) - ss.a))))
 
+      update.idx.coa <- c(update.r, update.p, update.pi)
+
+      zero.rc <- which(update.idx.coa == 0)
+
+      if (length(zero.rc) > 0) {
+
+        mcmc.cov.tr[zero.rc, ] <- 0
+        mcmc.cov.tr[, zero.rc] <- 0
+
+      }
+
     }
 
     if (ss.d.coa > 0) {
@@ -660,6 +671,17 @@ inferTTree <- function(ptree,
       }
 
       ss.lam.coa <- max(c(ss.min, ss.lam.coa * exp((ss.del.coa / (ss.nstart + i)) * (min(c(1, exp(ss.alpha.coa))) - ss.a))))
+
+      update.idx <- c(update.kappa, update.lambda)
+
+      zero.rc <- which(update.idx == 0)
+
+      if (length(zero.rc) > 0) {
+
+        mcmc.cov.coa[zero.rc, ] <- 0
+        mcmc.cov.coa[, zero.rc] <- 0
+
+      }
 
     }
 
@@ -857,6 +879,60 @@ inferTTree <- function(ptree,
   fulltrace <- coda::as.mcmc(fulltrace)
 
   record[[1]]$fulltrace <- fulltrace
+
+  finalstate <- list()
+  finalstate$ptree <- ptree
+  finalstate$dateS <- dateS
+  finalstate$dateT <- dateT
+  finalstate$r.shape <- r.shape
+  finalstate$r.scale <- r.scale
+  finalstate$p.shape1 <- p.shape1
+  finalstate$p.shape2 <- p.shape2
+  finalstate$pi.shape1 <- pi.shape1
+  finalstate$pi.shape2 <- pi.shape2
+  finalstate$kappa.shape <- kappa.shape
+  finalstate$kappa.scale <- kappa.scale
+  finalstate$lambda.shape <- lambda.shape
+  finalstate$lambda.scale <- lambda.scale
+  finalstate$rho.shape1 <- rho.shape1
+  finalstate$rho.shape2 <- rho.shape2
+  finalstate$w.shape <- w.shape
+  finalstate$w.scale <- w.scale
+  finalstate$ws.shape <- ws.shape
+  finalstate$ws.scale <- ws.scale
+  finalstate$mcmc.tree.updates <- mcmc.tree.updates
+  finalstate$ctree <- ctree
+  finalstate$grid.delta <- grid.delta
+  finalstate$ndemes <- ndemes
+  finalstate$demes.prior <- demes.prior
+  finalstate$parms.init.tr <- parms.init.tr
+  finalstate$parms.init.coa <- parms.init.coa
+  finalstate$parms.init.rho <- parms.init.rho
+  finalstate$parms.curr.tr <- parms.curr.tr
+  finalstate$parms.curr.coa <- parms.curr.coa
+  finalstate$parms.curr.rho <- parms.curr.rho
+  finalstate$mcmc.mu.tr <- mcmc.mu.tr
+  finalstate$mcmc.mu.coa <- mcmc.mu.coa
+  finalstate$mcmc.mu.rho <- mcmc.mu.rho
+  finalstate$mcmc.cov.tr <- mcmc.cov.tr
+  finalstate$mcmc.cov.coa <- mcmc.cov.coa
+  finalstate$mcmc.cov.rho <- mcmc.cov.rho
+  finalstate$update.r <- update.r
+  finalstate$update.p <- update.p
+  finalstate$update.pi <- update.pi
+  finalstate$update.rho <- update.rho
+  finalstate$update.kappa <- update.kappa
+  finalstate$update.lambda <- update.lambda
+  finalstate$update.ctree <- update.ctree
+  finalstate$mcmcIterations <- mcmcIterations
+  finalstate$ss.lam.tr <- ss.lam.tr
+  finalstate$ss.lam.coa <- ss.lam.coa
+  finalstate$ss.lam.rho <- ss.lam.rho
+  finalstate$grid <- grid
+  finalstate$Random.seed <- .Random.seed
+  finalstate$case <- 1
+
+  record[[1]]$finalstate <- finalstate
 
   class(record)<-'resTransPhylo'
   return(record)

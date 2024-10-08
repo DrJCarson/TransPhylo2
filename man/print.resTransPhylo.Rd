@@ -12,7 +12,7 @@
 \item{...}{Additional parameters are passed on}
 }
 \value{
-Print out details of TransPhyloMulti results
+Print out details of TransPhylo results
 }
 \description{
 Print function for resTransPhylo objects

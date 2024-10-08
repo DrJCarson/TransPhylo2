@@ -12,6 +12,10 @@ log_lik_locs_felsenstein_part(ttree, pm, demes.prior, dyn_L, hosts)
 \item{pm}{Probability transition matrix between demes}
 
 \item{demes.prior}{Prior probability for the location of the root host}
+
+\item{dyn_L}{Existing likelihood matrix from the dynamic programming algorithm}
+
+\item{hosts}{Hosts over which likelihood is calculated}
 }
 \description{
 Demes likelihood for a transmission tree using Felsenstein pruning
