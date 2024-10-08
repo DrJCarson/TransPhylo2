@@ -11,8 +11,6 @@
 #' @param mcmcIterations Number of MCMC iterations to run the algorithm for
 #' @param thinning MCMC thinning interval between two sampled iterations
 #' @param mcmc.tree.updates Number of transmission tree updates per parameter update
-#' @param mcmc.cov.tr Initial proposal covariance for transmission parameters
-#' @param mcmc.cov.coa Initial proposal covariance for coalescent parameters
 #' @param init.r Starting value of offspring distribution parameter r
 #' @param init.p Starting value of offspring distribution parameter p
 #' @param init.pi Starting value of sampling proportion pi
@@ -40,7 +38,7 @@
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
 #' @param rho.shape1 Shape1 parameter for the Beta prior of parameter rho
 #' @param rho.shape2 Shape2 parameter for the Beta prior of parameter rho
-#' @param demes.prior Prior probability for the location of the root host
+#' @param demes.prior Prior probability for the deme of the root host
 #' @param dateS Start date for observations
 #' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
@@ -58,8 +56,6 @@ inferTTree <- function(ptree,
                         mcmcIterations = 12000,
                         thinning = 1,
                         mcmc.tree.updates = NA,
-                        mcmc.cov.tr = NA,
-                        mcmc.cov.coa = NA,
                         init.r = 2,
                         init.p = 0.5,
                         init.pi = 0.5,
@@ -183,20 +179,20 @@ inferTTree <- function(ptree,
 
   }
 
-  if (is.na(sum(mcmc.cov.tr))) {
+#  if (is.na(sum(mcmc.cov.tr))) {
 
     mcmc.cov.tr <- diag(c(0.5 ^ 2 * as.numeric(update.r),
                           0.25 ^ 2 * as.numeric(update.p),
                           0.25 ^ 2 * as.numeric(update.pi)))
 
-  }
+#  }
 
-  if (is.na(sum(mcmc.cov.coa))) {
+#  if (is.na(sum(mcmc.cov.coa))) {
 
     mcmc.cov.coa <- diag(c(0.1 ^ 2 * as.numeric(update.kappa),
                            0.1 ^ 2 * as.numeric(update.lambda)))
 
-  }
+#  }
 
   mcmc.cov.rho <- 0.1 ^ 2 * as.numeric(update.rho)
 

@@ -11,8 +11,6 @@
 #' @param mcmcIterations Number of MCMC iterations to run the algorithm for
 #' @param thinning MCMC thinning interval between two sampled iterations
 #' @param mcmc.tree.updates Number of transmission tree updates per parameter update
-#' @param mcmc.cov.tr Initial proposal covariance for transmission parameters
-#' @param mcmc.cov.coa Initial proposal covariance for coalescent parameters
 #' @param init.r Starting value of offspring distribution parameter r
 #' @param init.p Starting value of offspring distribution parameter p
 #' @param init.pi Starting value of sampling proportion pi
@@ -28,22 +26,25 @@
 #' @param update.rho Whether to update parameter rho
 #' @param update.ctree Whether to update the transmission tree
 #' @param ndemes Number of possible locations
-#' @param r.shape Shape parameter for the Gamma prior of parameter r
-#' @param r.scale Scale parameter for the Gamma prior of parameter r
-#' @param p.shape1 Shape1 parameter for the Beta prior of parameter p
-#' @param p.shape2 Shape2 parameter for the Beta prior of parameter p
-#' @param pi.shape1 Shape1 parameter for the Beta prior of parameter pi
-#' @param pi.shape2 Shape2 parameter for the Beta prior of parameter pi
+#' @param r.shape Shape parameter(s) for the Gamma prior of parameter r
+#' @param r.scale Scale parameter(s) for the Gamma prior of parameter r
+#' @param p.shape1 Shape1 parameter(s) for the Beta prior of parameter p
+#' @param p.shape2 Shape2 parameter(s) for the Beta prior of parameter p
+#' @param pi.shape1 Shape1 parameter(s) for the Beta prior of parameter pi
+#' @param pi.shape2 Shape2 parameter(s) for the Beta prior of parameter pi
 #' @param kappa.shape Shape parameter for the Gamma prior of parameter kappa
 #' @param kappa.scale Scale parameter for the Gamma prior of parameter kappa
 #' @param lambda.shape Shape parameter for the Gamma prior of parameter lambda
 #' @param lambda.scale Scale parameter for the Gamma prior of parameter lambda
-#' @param rho.shape1 Shape1 parameter for the Beta prior of parameter rho
-#' @param rho.shape2 Shape2 parameter for the Beta prior of parameter rho
-#' @param demes.prior Prior probability for the location of the root host
+#' @param rho.shape1 Shape1 parameter(s) for the Beta prior of parameter rho
+#' @param rho.shape2 Shape2 parameter(s) for the Beta prior of parameter rho
+#' @param demes.prior Prior probability for the deme of the root host
 #' @param dateS Start date for observations
 #' @param dateT End date for observations
 #' @param grid.delta Grid resolution for approximating exclusion probabilities
+#' @param tr.demes Vector of length ndemes indicating which transmission parameters to use for each deme (Default: Each deme uses a separate parameter)
+#' @param pi.demes Vector of length ndemes indicating which pi parameters to use for each deme (Default: Each deme uses a separate parameter)
+#' @param rho.demes Vector of length ndemes indicating which rho parameters to use for each deme (Default: Each deme uses a separate parameter)
 #' @param verbose Whether or not to use verbose mode (default is false)
 #' @export
 inferTTreemulti <- function(ptree,
@@ -58,8 +59,6 @@ inferTTreemulti <- function(ptree,
                             mcmcIterations = 12000,
                             thinning = 1,
                             mcmc.tree.updates = NA,
-                            mcmc.cov.tr = NA,
-                            mcmc.cov.coa = NA,
                             init.r = 2,
                             init.p = 0.5,
                             init.pi = 0.5,
@@ -357,7 +356,7 @@ inferTTreemulti <- function(ptree,
 
   mcmc.mu.tr <- list()
 
-  if (is.na(sum(mcmc.cov.tr))) {
+#  if (is.na(sum(mcmc.cov.tr))) {
 
     mcmc.cov.tr <- list()
 
@@ -370,16 +369,16 @@ inferTTreemulti <- function(ptree,
 
     }
 
-  }
+#  }
 
   mcmc.mu.coa <- NA
 
-  if (is.na(sum(mcmc.cov.coa))) {
+#  if (is.na(sum(mcmc.cov.coa))) {
 
     mcmc.cov.coa <- diag(c(0.1 ^ 2 * as.numeric(update.kappa),
                            0.1 ^ 2 * as.numeric(update.lambda)))
 
-  }
+#  }
 
   ss.a <- 0.234
 

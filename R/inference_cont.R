@@ -1,3 +1,9 @@
+#' Continues an MCMC chain from a previous set of results
+#'
+#' @param prevrun resTransPhylo object
+#' @param mcmcIterations Number of new MCMC iterations to perform
+#' @param thinning MCMC thinning interval between two sampled iterations
+#' @param verbose Whether or not to use verbose mode (default is false)
 #' @export
 inferTTreecont <- function(prevrun,
                            mcmcIterations = 12000,

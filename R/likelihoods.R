@@ -360,6 +360,8 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
 #' @param ttree Transmission tree
 #' @param pm Probability transition matrix between demes
 #' @param demes.prior Prior probability for the location of the root host
+#' @param dyn_L Existing likelihood matrix from the dynamic programming algorithm
+#' @param hosts Hosts over which likelihood is calculated
 log_lik_locs_felsenstein_part <- function(ttree, pm, demes.prior, dyn_L, hosts) {
 
   # Initiate log likelihood
