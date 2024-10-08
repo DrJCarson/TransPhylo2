@@ -52,6 +52,14 @@ log_lik_ttree_multiparm_part(
 
 \item{grid.delta}{Discrete time step}
 
+\item{ndemes}{Number of demes}
+
+\item{pm}{Transmission probability matrix between demes}
+
+\item{demes.prior}{Prior probability for the deme of the root host}
+
+\item{dyn_L}{Existing likelihood matrix from the dynamic programming algorithm}
+
 \item{hosts}{Hosts over which likelihood is calculated}
 }
 \description{

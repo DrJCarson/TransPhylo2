@@ -27,34 +27,22 @@ computeMatWIW = function(record,burnin=0.5)
   return(mat)
 }
 
-#' Convert resTransPhylo object to coda mcmc format
-#' @param record Output from inferTTree function
-#' @param burnin Proportion of the MCMC output to be discarded as burnin
-#' @return Object of class mcmc from coda package
-#' @export
-convertToCoda = function(record,burnin=0.5) {
-  record=record[max(1,round(length(record)*burnin)):length(record)]
-  mat=cbind(
-    sapply(record,function(x) x$pi),
-    sapply(record,function(x) x$lambda),
-    sapply(record,function(x) x$kappa),
-    sapply(record,function(x) x$off.r))
-  colnames(mat)<-c('pi','lambda','kappa','off.r')
-  return(coda::as.mcmc(mat))
-}
 
 #' Print function for resTransPhylo objects
 #' @param x output from inferTTree
 #' @param ... Additional parameters are passed on
-#' @return Print out details of TransPhyloMulti results
+#' @return Print out details of TransPhylo results
 #' @export
 print.resTransPhylo <- function(x, ...)
 {
   stopifnot(inherits(x, "resTransPhylo"))
   cat( 'Result from TransPhylo analysis\n')
-  coda=convertToCoda(x,0.5)
-  for (nam in colnames(coda)) {
-    v=coda[,nam]
+
+  pTrace <- extractParmTrace(x)
+  pTrace <- coda::as.mcmc(pTrace[(floor(0.1 * dim(pTrace)[1]) + 1):dim(pTrace)[1], ])
+
+  for (nam in colnames(pTrace)) {
+    v=pTrace[,nam]
     v=sort(v)
     vals=c(mean(v),v[pmax(1,floor(length(v)*c(0.025,0.975)))])
     cat(sprintf('%s=%.2e [%.2e;%.2e]\n',nam,vals[1],vals[2],vals[3]))

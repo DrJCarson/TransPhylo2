@@ -50,7 +50,11 @@ log_lik_ttree_multiparm(
 
 \item{grid.delta}{Discrete time step}
 
-\item{hosts}{Hosts over which likelihood is calculated}
+\item{ndemes}{Number of demes}
+
+\item{pm}{Transmission probability matrix between demes}
+
+\item{demes.prior}{Prior probability for the deme of the root host}
 }
 \description{
 Calculate transmission tree log likelihood

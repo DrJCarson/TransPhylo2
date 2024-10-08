@@ -199,29 +199,112 @@ plotTraces <- function(record, burnin = 0) {
 
   record <- record[max(1, round(length(record) * burnin)):length(record)]
 
+  plot(sapply(record, function(x) x$pTTree + x$pPTree), ylab = 'Posterior probability',
+       xlab = 'MCMC iterations', type = 'l')
 
-  rho_res <- sapply(record, function(x) x$rho)
+  rres <- sapply(record, function(x) x$off.r)
 
-  if (length(unique(rho_res)) > 1) {
+  if (is.null(dim(rres))) {
 
-    plot(rho_res, ylab = 'rho',
-         xlab = 'MCMC iterations', type = 'l')
+    if (length(unique(rres)) > 1) {
+
+      plot(rres, ylab = 'off.r', xlab = 'MCMC iterations', type = 'l')
+
+    }
 
   } else {
 
-    plot(sapply(record, function(x) x$pTTree + x$pPTree), ylab = 'Posterior probability',
-         xlab = 'MCMC iterations', type = 'l')
+    ndim <- dim(rres)[1]
+
+    for (i in 1:ndim) {
+
+      if (length(unique(rres[i, ])) > 1) {
+
+        plot(rres[i, ], ylab = paste("off.r ", i, sep = ""), xlab = 'MCMC iterations', type = 'l')
+
+      }
+
+    }
 
   }
 
-  plot(sapply(record, function(x) x$pi), ylab = 'Sampling proportion pi',
-       xlab = 'MCMC iterations', type = 'l')
+  pres <- sapply(record, function(x) x$off.p)
 
-  plot(sapply(record, function(x) x$off.r), ylab = 'off.r',
-       xlab = 'MCMC iterations', type = 'l')
+  if (is.null(dim(pres))) {
 
-  plot(sapply(record, function(x) x$off.p), ylab = 'off.p',
-         xlab = 'MCMC iterations', type = 'l')
+    if (length(unique(pres)) > 1) {
+
+      plot(pres, ylab = 'off.p', xlab = 'MCMC iterations', type = 'l')
+
+    }
+
+  } else {
+
+    ndim <- dim(pres)[1]
+
+    for (i in 1:ndim) {
+
+      if (length(unique(pres[i, ])) > 1) {
+
+        plot(pres[i, ], ylab = paste("off.p ", i, sep = ""), xlab = 'MCMC iterations', type = 'l')
+
+      }
+
+    }
+
+  }
+
+  pires <- sapply(record, function(x) x$pi)
+
+  if (is.null(dim(pires))) {
+
+    if (length(unique(pires)) > 1) {
+
+      plot(pires, ylab = 'pi', xlab = 'MCMC iterations', type = 'l')
+
+    }
+
+  } else {
+
+    ndim <- dim(pires)[1]
+
+    for (i in 1:ndim) {
+
+      if (length(unique(pires[i, ])) > 1) {
+
+        plot(pires[i, ], ylab = paste("pi ", i, sep = ""), xlab = 'MCMC iterations', type = 'l')
+
+      }
+
+    }
+
+  }
+
+  rhores <- sapply(record, function(x) x$rho)
+
+  if (is.null(dim(rhores))) {
+
+    if (length(unique(rhores)) > 1) {
+
+      plot(rhores, ylab = 'rho', xlab = 'MCMC iterations', type = 'l')
+
+    }
+
+  } else {
+
+    ndim <- dim(rhores)[1]
+
+    for (i in 1:ndim) {
+
+      if (length(unique(rhores[i, ])) > 1) {
+
+        plot(rhores[i, ], ylab = paste("rho ", i, sep = ""), xlab = 'MCMC iterations', type = 'l')
+
+      }
+
+    }
+
+  }
 
   plot(sapply(record, function(x) x$kappa), ylab = 'Within-host initial population kappa',
        xlab = 'MCMC iterations', type = 'l')

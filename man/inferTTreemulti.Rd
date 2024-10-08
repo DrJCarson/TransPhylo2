@@ -17,8 +17,6 @@ inferTTreemulti(
   mcmcIterations = 12000,
   thinning = 1,
   mcmc.tree.updates = NA,
-  mcmc.cov.tr = NA,
-  mcmc.cov.coa = NA,
   init.r = 2,
   init.p = 0.5,
   init.pi = 0.5,
@@ -81,10 +79,6 @@ inferTTreemulti(
 
 \item{mcmc.tree.updates}{Number of transmission tree updates per parameter update}
 
-\item{mcmc.cov.tr}{Initial proposal covariance for transmission parameters}
-
-\item{mcmc.cov.coa}{Initial proposal covariance for coalescent parameters}
-
 \item{init.r}{Starting value of offspring distribution parameter r}
 
 \item{init.p}{Starting value of offspring distribution parameter p}
@@ -115,17 +109,17 @@ inferTTreemulti(
 
 \item{ndemes}{Number of possible locations}
 
-\item{r.shape}{Shape parameter for the Gamma prior of parameter r}
+\item{r.shape}{Shape parameter(s) for the Gamma prior of parameter r}
 
-\item{r.scale}{Scale parameter for the Gamma prior of parameter r}
+\item{r.scale}{Scale parameter(s) for the Gamma prior of parameter r}
 
-\item{p.shape1}{Shape1 parameter for the Beta prior of parameter p}
+\item{p.shape1}{Shape1 parameter(s) for the Beta prior of parameter p}
 
-\item{p.shape2}{Shape2 parameter for the Beta prior of parameter p}
+\item{p.shape2}{Shape2 parameter(s) for the Beta prior of parameter p}
 
-\item{pi.shape1}{Shape1 parameter for the Beta prior of parameter pi}
+\item{pi.shape1}{Shape1 parameter(s) for the Beta prior of parameter pi}
 
-\item{pi.shape2}{Shape2 parameter for the Beta prior of parameter pi}
+\item{pi.shape2}{Shape2 parameter(s) for the Beta prior of parameter pi}
 
 \item{kappa.shape}{Shape parameter for the Gamma prior of parameter kappa}
 
@@ -135,17 +129,23 @@ inferTTreemulti(
 
 \item{lambda.scale}{Scale parameter for the Gamma prior of parameter lambda}
 
-\item{rho.shape1}{Shape1 parameter for the Beta prior of parameter rho}
+\item{rho.shape1}{Shape1 parameter(s) for the Beta prior of parameter rho}
 
-\item{rho.shape2}{Shape2 parameter for the Beta prior of parameter rho}
+\item{rho.shape2}{Shape2 parameter(s) for the Beta prior of parameter rho}
 
-\item{demes.prior}{Prior probability for the location of the root host}
+\item{demes.prior}{Prior probability for the deme of the root host}
 
 \item{dateS}{Start date for observations}
 
 \item{dateT}{End date for observations}
 
 \item{grid.delta}{Grid resolution for approximating exclusion probabilities}
+
+\item{tr.demes}{Vector of length ndemes indicating which transmission parameters to use for each deme (Default: Each deme uses a separate parameter)}
+
+\item{pi.demes}{Vector of length ndemes indicating which pi parameters to use for each deme (Default: Each deme uses a separate parameter)}
+
+\item{rho.demes}{Vector of length ndemes indicating which rho parameters to use for each deme (Default: Each deme uses a separate parameter)}
 
 \item{verbose}{Whether or not to use verbose mode (default is false)}
 }
