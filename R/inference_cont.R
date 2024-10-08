@@ -438,26 +438,26 @@ inferTTreecont <- function(prevrun,
               if (k <= tr.dim) {
 
                 ss.alpha.tr <- ss.alpha.tr +
-                  (dgamma(parms.prop.tr[["r"]], shape = r.shape, scale = r.scale, log = T) -
-                     dgamma(parms.curr.tr[["r", k]], shape = r.shape, scale = r.scale, log = T)) +
-                  (dbeta(parms.prop.tr[["p"]], shape1 = p.shape1, shape2 = p.shape2, log = T) -
-                     dbeta(parms.curr.tr[["p", k]], shape1 = p.shape1, shape2 = p.shape2, log = T))
+                  (dgamma(parms.prop.tr[["r"]], shape = r.shape[k], scale = r.scale[k], log = T) -
+                     dgamma(parms.curr.tr[["r", k]], shape = r.shape[k], scale = r.scale[k], log = T)) +
+                  (dbeta(parms.prop.tr[["p"]], shape1 = p.shape1[k], shape2 = p.shape2[k], log = T) -
+                     dbeta(parms.curr.tr[["p", k]], shape1 = p.shape1[k], shape2 = p.shape2[k], log = T))
 
               }
 
               if (k <= pi.dim) {
 
                 ss.alpha.tr <- ss.alpha.tr +
-                  (dbeta(parms.prop.tr[["pi"]], shape1 = pi.shape1, shape2 = pi.shape2, log = T) -
-                     dbeta(parms.curr.tr[["pi", k]], shape1 = pi.shape1, shape2 = pi.shape2, log = T))
+                  (dbeta(parms.prop.tr[["pi"]], shape1 = pi.shape1[k], shape2 = pi.shape2[k], log = T) -
+                     dbeta(parms.curr.tr[["pi", k]], shape1 = pi.shape1[k], shape2 = pi.shape2[k], log = T))
 
               }
 
               if (k <= rho.dim) {
 
                 ss.alpha.tr <- ss.alpha.tr +
-                  (dbeta(parms.prop.tr[["rho"]], shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
-                     dbeta(parms.curr.tr[["rho", k]], shape1 = rho.shape1, shape2 = rho.shape2, log = T))
+                  (dbeta(parms.prop.tr[["rho"]], shape1 = rho.shape1[k], shape2 = rho.shape2[k], log = T) -
+                     dbeta(parms.curr.tr[["rho", k]], shape1 = rho.shape1[k], shape2 = rho.shape2[k], log = T))
 
               }
 

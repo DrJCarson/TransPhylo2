@@ -254,9 +254,33 @@ inferTTreemulti <- function(ptree,
 
   }
 
+  if (length(r.shape) == 1) {
+
+    r.shape <- rep(r.shape, tr.dim)
+
+  }
+
+  if (length(r.scale) == 1) {
+
+    r.scale <- rep(r.scale, tr.dim)
+
+  }
+
   if (length(init.p) == 1) {
 
     init.p <- rep(init.p, tr.dim)
+
+  }
+
+  if (length(p.shape1) == 1) {
+
+    p.shape1 <- rep(p.shape1, tr.dim)
+
+  }
+
+  if (length(p.shape2) == 1) {
+
+    p.shape2 <- rep(p.shape2, tr.dim)
 
   }
 
@@ -266,9 +290,33 @@ inferTTreemulti <- function(ptree,
 
   }
 
+  if (length(pi.shape1) == 1) {
+
+    pi.shape1 <- rep(pi.shape1, pi.dim)
+
+  }
+
+  if (length(pi.shape2) == 1) {
+
+    pi.shape2 <- rep(pi.shape2, pi.dim)
+
+  }
+
   if (length(init.rho) == 1) {
 
     init.rho <- rep(init.rho, rho.dim)
+
+  }
+
+  if (length(rho.shape1) == 1) {
+
+    rho.shape1 <- rep(rho.shape1, rho.dim)
+
+  }
+
+  if (length(rho.shape2) == 1) {
+
+    rho.shape2 <- rep(rho.shape2, rho.dim)
 
   }
 
@@ -645,26 +693,26 @@ inferTTreemulti <- function(ptree,
             if (k <= tr.dim) {
 
               ss.alpha.tr <- ss.alpha.tr +
-                (dgamma(parms.prop.tr[["r"]], shape = r.shape, scale = r.scale, log = T) -
-                   dgamma(parms.curr.tr[["r", k]], shape = r.shape, scale = r.scale, log = T)) +
-                (dbeta(parms.prop.tr[["p"]], shape1 = p.shape1, shape2 = p.shape2, log = T) -
-                   dbeta(parms.curr.tr[["p", k]], shape1 = p.shape1, shape2 = p.shape2, log = T))
+                (dgamma(parms.prop.tr[["r"]], shape = r.shape[k], scale = r.scale[k], log = T) -
+                   dgamma(parms.curr.tr[["r", k]], shape = r.shape[k], scale = r.scale[k], log = T)) +
+                (dbeta(parms.prop.tr[["p"]], shape1 = p.shape1[k], shape2 = p.shape2[k], log = T) -
+                   dbeta(parms.curr.tr[["p", k]], shape1 = p.shape1[k], shape2 = p.shape2[k], log = T))
 
             }
 
             if (k <= pi.dim) {
 
               ss.alpha.tr <- ss.alpha.tr +
-                (dbeta(parms.prop.tr[["pi"]], shape1 = pi.shape1, shape2 = pi.shape2, log = T) -
-                   dbeta(parms.curr.tr[["pi", k]], shape1 = pi.shape1, shape2 = pi.shape2, log = T))
+                (dbeta(parms.prop.tr[["pi"]], shape1 = pi.shape1[k], shape2 = pi.shape2[k], log = T) -
+                   dbeta(parms.curr.tr[["pi", k]], shape1 = pi.shape1[k], shape2 = pi.shape2[k], log = T))
 
             }
 
             if (k <= rho.dim) {
 
               ss.alpha.tr <- ss.alpha.tr +
-                (dbeta(parms.prop.tr[["rho"]], shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
-                   dbeta(parms.curr.tr[["rho", k]], shape1 = rho.shape1, shape2 = rho.shape2, log = T))
+                (dbeta(parms.prop.tr[["rho"]], shape1 = rho.shape1[k], shape2 = rho.shape2[k], log = T) -
+                   dbeta(parms.curr.tr[["rho", k]], shape1 = rho.shape1[k], shape2 = rho.shape2[k], log = T))
 
             }
 
