@@ -1,0 +1,61 @@
+---
+title: "Example where demes have same offspring distribution but different sampling probabilities"
+author: "Xavier Didelot, Jake Carson"
+date: '`r Sys.Date()`'
+output: html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+  %\VignetteIndexEntry{Example where demes have same offspring distribution but different sampling probabilities}
+  %\usepackage[utf8]{inputenc}
+---
+```{r echo=F}
+knitr::opts_chunk$set(fig.width=6, fig.height=4) 
+```
+
+If you want to reproduce exactly the same results as the ones shown in this tutorial, you need to set the seed of your random number generator to zero:
+```{r}
+library(TransPhylo2)
+set.seed(0)
+```
+
+We simulate an outbreak that starts in 2005 and which and is observed up to 2008, across two locations. In this example, both demes use the same reproduction number (off.r), but different sample proportions (pi) and mixing probabilities (rho):
+
+```{r}
+simu <- simulateOutbreakmulti(kappa=0.25,lambda=0.25,pi=c(0.25, 0.75),off.r=c(3),w.shape=10,
+                         w.scale=0.1,dateStartOutbreak=2005,dateT=2008,ndemes=2,rho=c(0.6, 0.8))
+```
+
+This simulation contains both the transmission tree between infected hosts and the within-host phylogenetic tree of each host. This can be visualised as a colored phlogenetic tree, where each host is represented by a unique color:
+
+```{r}
+plot(simu)
+plotdemesCTree(simu)
+```
+
+The transmission tree can be extracted and plotted separately from the phylogeny:
+
+
+```{r}
+ttree=extractTTree(simu)
+plot(ttree,type='detailed',w.shape=10,w.scale=0.1)
+```
+
+The phylogenetic tree can be extracted and plotted separately from the transmission tree:
+
+```{r}
+ptree<-extractPTree(simu)
+p<-phyloFromPTree(ptree)
+plot(p)
+ape::axisPhylo(backward = F)
+```
+
+We indicate that both demes use the same off.r parameter with tr.demes = c(1, 1). By default pi.demes = c(1, 2) and rho.demes = c(1, 2), indicating that each deme uses a different parameter.
+
+```{r,results='hide'}
+ptree<-ptreeFromPhylo(p,dateLastSample=dateLastSample(simu),demes=simu$demes)
+res<-inferTTreemulti(ptree,mcmcIterations=1000,w.shape=10,w.scale=0.1,dateT=2008,update.rho=T, tr.demes = c(1, 1))
+```
+
+```{r}
+plot(res)
+```
