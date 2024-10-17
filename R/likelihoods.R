@@ -248,13 +248,13 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
   ttree <- ttree$ttree
 
   # Number of demes
-  n_demes <- dim(pm)[1]
+  ndemes <- dim(pm)[1]
 
   # Total number of hosts  in transmission tree
   n_inds <- length(ttree[, 1])
 
   # Probabilities for each location for each host
-  dyn_L <- array(rep(0, n_inds * n_demes), dim = c(n_inds, n_demes))
+  dyn_L <- array(rep(0, n_inds * ndemes), dim = c(n_inds, ndemes))
 
   # Order in which to calculate location probabilities
   rev_order <- order(ttree[, 1] , decreasing = T)
@@ -281,7 +281,7 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
 
           temp_prob <- 0
 
-          for (cl in 1:n_demes) {
+          for (cl in 1:ndemes) {
 
             temp_prob <- temp_prob + pm[hl, cl] * dyn_L[child, cl]
 
@@ -301,7 +301,7 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
       } else {
 
         # Calculate location probabilities
-        for (hl in 1:n_demes) {
+        for (hl in 1:ndemes) {
 
           dyn_L[host, hl] <- 1
 
@@ -311,7 +311,7 @@ log_lik_locs_felsenstein <- function(ttree, pm, demes.prior) {
 
             temp_prob <- 0
 
-            for (cl in 1:n_demes) {
+            for (cl in 1:ndemes) {
 
               temp_prob <- temp_prob + pm[hl, cl] * dyn_L[child, cl]
 
@@ -371,7 +371,7 @@ log_lik_locs_felsenstein_part <- function(ttree, pm, demes.prior, dyn_L, hosts) 
   ttree <- ttree$ttree
 
   # Number of demes
-  n_demes <- dim(pm)[1]
+  ndemes <- dim(pm)[1]
 
   todo <- hosts
 
@@ -401,7 +401,7 @@ log_lik_locs_felsenstein_part <- function(ttree, pm, demes.prior, dyn_L, hosts) 
 
           temp_prob <- 0
 
-          for (cl in 1:n_demes) {
+          for (cl in 1:ndemes) {
 
             temp_prob <- temp_prob + pm[hl, cl] * dyn_L[child, cl]
 
@@ -421,7 +421,7 @@ log_lik_locs_felsenstein_part <- function(ttree, pm, demes.prior, dyn_L, hosts) 
       } else {
 
         # Calculate location probabilities
-        for (hl in 1:n_demes) {
+        for (hl in 1:ndemes) {
 
           dyn_L[host, hl] <- 1
 
@@ -431,7 +431,7 @@ log_lik_locs_felsenstein_part <- function(ttree, pm, demes.prior, dyn_L, hosts) 
 
             temp_prob <- 0
 
-            for (cl in 1:n_demes) {
+            for (cl in 1:ndemes) {
 
               temp_prob <- temp_prob + pm[hl, cl] * dyn_L[child, cl]
 

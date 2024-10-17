@@ -22,14 +22,14 @@ We simulate an outbreak that starts in 2005 and which and is observed up to 2008
 
 ```{r}
 simu <- simulateOutbreak(kappa=0.25,lambda=0.25,pi=0.25,off.r=5,w.shape=10,
-                         w.scale=0.1,dateStartOutbreak=2005,dateT=2008,nLocs=2,rho=0.8)
+                         w.scale=0.1,dateStartOutbreak=2005,dateT=2008,ndemes=2,rho=0.8)
 ```
 
 This simulation contains both the transmission tree between infected hosts and the within-host phylogenetic tree of each host. This can be visualised as a colored phlogenetic tree, where each host is represented by a unique color:
 
 ```{r}
 plot(simu)
-plotLocsCTree(simu)
+plotdemesCTree(simu)
 ```
 
 The transmission tree can be extracted and plotted separately from the phylogeny:
@@ -51,7 +51,7 @@ ape::axisPhylo(backward = F)
 
 
 ```{r,results='hide'}
-ptree<-ptreeFromPhylo(p,dateLastSample=dateLastSample(simu),locations=simu$locations)
+ptree<-ptreeFromPhylo(p,dateLastSample=dateLastSample(simu),demes=simu$demes)
 res<-inferTTree(ptree,mcmcIterations=1000,w.shape=10,w.scale=0.1,dateT=2008,update.rho=T)
 ```
 

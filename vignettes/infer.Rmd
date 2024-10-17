@@ -67,7 +67,7 @@ These traces need to look stable (after initial convergence) for the MCMC to be 
 Further assessment of the MCMC convergence and mixing can be obtained using the CODA package, for example to obtain the effective sample size (ESS) of parameters as follows, making sure that the ESS of each parameter is at least 100:
 ```{r}
 library(coda)
-mcmc=convertToCoda(res)
+mcmc=extractParmTrace(res)
 effectiveSize(mcmc)
 ```
 
