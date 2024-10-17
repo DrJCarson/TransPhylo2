@@ -79,10 +79,10 @@ example the 1st January 2023 in the code above.
 ## More information and getting help
 
 For more detailed examples of how to use TransPhylo2, see the vignettes
-[here](https://github.com/DrJCarson/TransPhyloMulti/tree/master/vignettes).
+[here](https://github.com/DrJCarson/TransPhylo2/tree/master/vignettes).
 We also include the code used to generate the results in the manuscript
-[here](https://github.com/DrJCarson/TransPhyloMulti/tree/master/run).
-See also the help included in the package using the R command
+[here](https://github.com/DrJCarson/TransPhylo2/tree/master/run). See
+also the help included in the package using the R command
 `help(package='TransPhylo2')`.
 
 If you have any problem or question please create an issue
