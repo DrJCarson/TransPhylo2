@@ -27,7 +27,7 @@ number and sampling proportion) may also differ across demes.
 
 For a more formal description of TransPhylo2, see the following paper:
 
-Carson et al. (2024). Incorporating epidemiological data into the genomic analysis of partially sampled infectious disease outbreaks. In preparation.
+Carson et al. (2025). Incorporating epidemiological data into the genomic analysis of partially sampled infectious disease outbreaks. Molecular Biology and Evolution, Volume 42, Issue 4, April 2025, msaf083, https://doi.org/10.1093/molbev/msaf083
 
 ## Installation
 
