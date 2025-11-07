@@ -503,7 +503,7 @@ remove_add <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1, epsilon =
 
     sam_time_r <- sam_time
 
-    sam_clust_r <- which(temp_start_r < sam_time_r & temp_end_r > sam_time_r & temp_bin_r == orig_bin)
+    sam_clust_r <- which(temp_start_r <= sam_time_r & temp_end_r >= sam_time_r & temp_bin_r == orig_bin)[1]
 
     prop_density <- prop_density + log(prob_clust_p[sam_clust_p])
     rev_density <- rev_density + log(prob_clust_r[sam_clust_r])
@@ -1590,7 +1590,7 @@ remove_transmission <- function(ctree, pen.prob = 0, pen.size = 1, pen.len = 1) 
 
   orig_bin <- sum(as.numeric(unique_hosts %in% unique(host2[orig_host[leaves] == sam_host2])) * 2 ^ (0:(length(unique_hosts) - 1)))
 
-  sam_clust <- which(temp_start < sam_time & temp_end > sam_time & temp_bin == orig_bin)
+  sam_clust <- which(temp_start <= sam_time & temp_end >= sam_time & temp_bin == orig_bin)[1]
 
   rev_density <- rev_density + log(prob_clust[sam_clust])
 
