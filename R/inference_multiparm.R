@@ -153,14 +153,14 @@ inferTTreemulti <- function(ptree,
 
   }
 
-  if (!is.na(w.mean) && !is.na(w.std)) {
+  if (!is.na(w.mean) & !is.na(w.std)) {
 
     w.shape <- w.mean ^ 2 /  w.std ^ 2
     w.scale <- w.std ^ 2 / w.mean
 
   }
 
-  if (!is.na(ws.mean)&&!is.na(ws.std)) {
+  if (!is.na(ws.mean) & !is.na(ws.std)) {
 
     ws.shape <- ws.mean ^ 2 / ws.std ^ 2
     ws.scale <- ws.std ^ 2 / ws.mean
@@ -215,7 +215,7 @@ inferTTreemulti <- function(ptree,
 
   }
 
-  if (is.na(demes.prior)) {
+  if (is.na(demes.prior[1])) {
 
     demes.prior <- rep(1 / ndemes, ndemes)
 
