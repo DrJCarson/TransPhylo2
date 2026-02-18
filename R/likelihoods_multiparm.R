@@ -171,19 +171,23 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
           dyn_L[i, demes[i]] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
                                       ws.scale, obs.start, obs.end, grid.delta, i, demes[i])
 
-          for (j in children) {
+          if (is.finite(dyn_L[i, demes[i]])) {
 
-            for (d2 in 1:ndemes) {
+            for (j in children) {
 
-              lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) +
-                dyn_L[j, d2]
+              for (d2 in 1:ndemes) {
+
+                lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) +
+                  dyn_L[j, d2]
+
+              }
+
+              m <- max(lul)
+
+              dyn_L[i, demes[i]] <- dyn_L[i, demes[i]] +
+                log(sum(exp(lul - m))) + m
 
             }
-
-            m <- max(lul)
-
-            dyn_L[i, demes[i]] <- dyn_L[i, demes[i]] +
-              log(sum(exp(lul - m))) + m
 
           }
 
@@ -193,6 +197,39 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
             dyn_L[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
                                  ws.scale, obs.start, obs.end, grid.delta, i, d)
+
+            if (is.finite(dyn_L[i, d])) {
+
+              for (j in children) {
+
+                for (d2 in 1:ndemes) {
+
+                  lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) +
+                    dyn_L[j, d2]
+
+                }
+
+                m <- max(lul)
+
+                dyn_L[i, d] <- dyn_L[i, d] +
+                  log(sum(exp(lul - m))) + m
+
+              }
+
+            }
+
+          }
+
+        }
+
+      } else {
+
+        for (d in 1:ndemes) {
+
+          dyn_L[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
+                               ws.scale, obs.start, obs.end, grid.delta, i, d)
+
+          if (is.finite(dyn_L[i, d])) {
 
             for (j in children) {
 
@@ -214,31 +251,6 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
         }
 
-      } else {
-
-        for (d in 1:ndemes) {
-
-          dyn_L[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
-                               ws.scale, obs.start, obs.end, grid.delta, i, d)
-
-          for (j in children) {
-
-            for (d2 in 1:ndemes) {
-
-              lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) +
-                dyn_L[j, d2]
-
-            }
-
-            m <- max(lul)
-
-            dyn_L[i, d] <- dyn_L[i, d] +
-              log(sum(exp(lul - m))) + m
-
-          }
-
-        }
-
       }
 
     }
@@ -251,7 +263,15 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 
   rootm <- max(lpl)
 
-  log_likelihood <- log(sum(exp(lpl - rootm))) + rootm
+  if (is.finite(rootm)) {
+
+    log_likelihood <- log(sum(exp(lpl - rootm))) + rootm
+
+  } else {
+
+    log_likelihood <- -Inf
+
+  }
 
   return(list(loglik = log_likelihood, dyn_L = dyn_L))
 
@@ -349,19 +369,23 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
           dyn_L[i, demes[i]] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
                                         ws.scale, obs.start, obs.end, grid.delta, i, demes[i])
 
-          for (j in children) {
+          if (is.finite(dyn_L[i, demes[i]])) {
 
-            for (d2 in 1:ndemes) {
+            for (j in children) {
 
-              lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) +
-                dyn_L[j, d2]
+              for (d2 in 1:ndemes) {
+
+                lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, demes[i], j, d2, pm) +
+                  dyn_L[j, d2]
+
+              }
+
+              m <- max(lul)
+
+              dyn_L[i, demes[i]] <- dyn_L[i, demes[i]] +
+                log(sum(exp(lul - m))) + m
 
             }
-
-            m <- max(lul)
-
-            dyn_L[i, demes[i]] <- dyn_L[i, demes[i]] +
-              log(sum(exp(lul - m))) + m
 
           }
 
@@ -371,6 +395,39 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
             dyn_L[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
                                    ws.scale, obs.start, obs.end, grid.delta, i, d)
+
+            if (is.finite(dyn_L[i, d])) {
+
+              for (j in children) {
+
+                for (d2 in 1:ndemes) {
+
+                  lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) +
+                    dyn_L[j, d2]
+
+                }
+
+                m <- max(lul)
+
+                dyn_L[i, d] <- dyn_L[i, d] +
+                  log(sum(exp(lul - m))) + m
+
+              }
+
+            }
+
+          }
+
+        }
+
+      } else {
+
+        for (d in 1:ndemes) {
+
+          dyn_L[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
+                                 ws.scale, obs.start, obs.end, grid.delta, i, d)
+
+          if (is.finite(dyn_L[i, d])) {
 
             for (j in children) {
 
@@ -387,31 +444,6 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
                 log(sum(exp(lul - m))) + m
 
             }
-
-          }
-
-        }
-
-      } else {
-
-        for (d in 1:ndemes) {
-
-          dyn_L[i, d] <- dyn_T(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
-                                 ws.scale, obs.start, obs.end, grid.delta, i, d)
-
-          for (j in children) {
-
-            for (d2 in 1:ndemes) {
-
-              lul[d2] <- dyn_U(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta, i, d, j, d2, pm) +
-                dyn_L[j, d2]
-
-            }
-
-            m <- max(lul)
-
-            dyn_L[i, d] <- dyn_L[i, d] +
-              log(sum(exp(lul - m))) + m
 
           }
 
@@ -442,7 +474,15 @@ log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi,
 
   rootm <- max(lpl)
 
-  log_likelihood <- log(sum(exp(lpl - rootm))) + rootm
+  if (is.finite(rootm)) {
+
+    log_likelihood <- log(sum(exp(lpl - rootm))) + rootm
+
+  } else {
+
+    log_likelihood <- -Inf
+
+  }
 
   return(list(loglik = log_likelihood, dyn_L = dyn_L))
 
