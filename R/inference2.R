@@ -756,8 +756,8 @@ inferTTree2 <- function(ptree,
         dyn_L2 <- ll_out2$dyn_L
 
         ss.alpha.rho <- (pLocs2 - pLocs) +
-          (dbeta(parms.prop.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T) -
-             dbeta(parms.curr.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T))
+          (sum(dbeta(parms.prop.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T)) -
+             sum(dbeta(parms.curr.rho, shape1 = rho.shape1, shape2 = rho.shape2, log = T)))
 
       } else {
 
@@ -878,11 +878,69 @@ inferTTree2 <- function(ptree,
 
   }#End of main MCMC loop
 
-  update.vec <- c(update.r, update.p, update.pi, update.rho, update.kappa, update.lambda)
+  update.vec <- c(update.r, update.p, update.pi, update.kappa, update.lambda)
 
-  mcmcdim <- sum(as.numeric(update.vec))
+  mcmcdim <- sum(as.numeric(update.vec)) + rho.dim * update.rho
 
-  cnames <- c("r", "p", "pi", "rho", "kappa", "lambda")[which(update.vec)]
+  cnames <- character(mcmcdim)
+
+
+  d <- 1
+
+  if (update.r) {
+
+      cnames[d] <- "r"
+
+      d <- d + 1
+
+  }
+
+  if (update.p) {
+
+      cnames[d] <- "p"
+
+      d <- d + 1
+
+  }
+
+  if (update.pi) {
+
+
+      cnames[d] <- "pi"
+
+      d <- d + 1
+
+
+  }
+
+  if (update.rho) {
+
+    for (de in  1:rho.dim) {
+
+      cnames[d] <- paste("rho", de, sep = "")
+
+      d <- d + 1
+
+    }
+
+  }
+
+  if (update.kappa) {
+
+    cnames[d] <- "kappa"
+
+    d <- d + 1
+
+  }
+
+  if (update.lambda) {
+
+    cnames[d] <- "lambda"
+
+    d <- d + 1
+
+  }
+
 
   fulltrace <- array(dim = c(mcmcIterations, mcmcdim), dimnames = list(NULL, cnames))
 
@@ -890,35 +948,45 @@ inferTTree2 <- function(ptree,
 
   if (update.r) {
 
-    fulltrace[, d] <- trace.r
-    d <- d + 1
+      fulltrace[, d] <- trace.r
+
+      d <- d + 1
+
 
   }
 
   if (update.p) {
 
-    fulltrace[, d] <- trace.p
-    d <- d + 1
+      fulltrace[, d] <- trace.p
+
+      d <- d + 1
 
   }
 
   if (update.pi) {
 
-    fulltrace[, d] <- trace.pi
-    d <- d + 1
+      fulltrace[, d] <- trace.pi
+
+      d <- d + 1
 
   }
 
   if (update.rho) {
 
-    fulltrace[, d] <- trace.rho
-    d <- d + 1
+    for (de in  1:rho.dim) {
+
+      fulltrace[, d] <- trace.rho[, de]
+
+      d <- d + 1
+
+    }
 
   }
 
   if (update.kappa) {
 
     fulltrace[, d] <- trace.kappa
+
     d <- d + 1
 
   }
@@ -926,6 +994,7 @@ inferTTree2 <- function(ptree,
   if (update.lambda) {
 
     fulltrace[, d] <- trace.lambda
+
     d <- d + 1
 
   }
