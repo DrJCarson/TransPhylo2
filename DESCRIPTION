@@ -14,5 +14,15 @@ Encoding: UTF-8
 LazyData: true
 Roxygen: list(markdown = TRUE)
 RoxygenNote: 7.2.3
-Imports: stats, graphics, ape, MASS, coda
+Imports: 
+    stats,
+    graphics,
+    ape,
+    MASS,
+    coda,
+    Rcpp,
+    RcppArmadillo
 Suggests: knitr, lattice, testthat
+LinkingTo: 
+    Rcpp,
+    RcppArmadillo

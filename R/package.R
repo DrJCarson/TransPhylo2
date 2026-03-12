@@ -10,3 +10,8 @@
 #' @import ape
 #' @importFrom utils combn getFromNamespace
 NULL
+
+.onUnload <- function (libpath) {
+  library.dynam.unload("TransPhylo2", libpath)
+}
+NULL
