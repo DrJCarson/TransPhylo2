@@ -397,18 +397,18 @@ List log_lik_ttree_multiparm_cpp(const List& ttree_list,
   for (int d = 0; d < ndemes; ++d)
     if (lpl[d] > m) m = lpl[d];
 
-    double loglik = negInf();
-    if (isFinite(m)) {
-      double sumexp = 0.0;
-      for (int d = 0; d < ndemes; ++d)
-        sumexp += std::exp(lpl[d] - m);
-      loglik = std::log(sumexp) + m;
-    }
+  double loglik = negInf();
+  if (isFinite(m)) {
+    double sumexp = 0.0;
+    for (int d = 0; d < ndemes; ++d)
+      sumexp += std::exp(lpl[d] - m);
+    loglik = std::log(sumexp) + m;
+  }
 
-    return List::create(
-      _["loglik"] = loglik,
-      _["dyn_L"] = dyn_L
-    );
+  return List::create(
+    _["loglik"] = loglik,
+    _["dyn_L"] = dyn_L
+  );
 }
 
 
@@ -615,7 +615,7 @@ List log_lik_ttree_multiparm_part_cpp(const List& ttree_list,
         bool present = false;
         for (int v : todo)
           if (v == p) { present = true; break; }
-          if (!present) todo.push_back(p);
+        if (!present) todo.push_back(p);
       }
     }
 
@@ -646,18 +646,18 @@ List log_lik_ttree_multiparm_part_cpp(const List& ttree_list,
   for (int d = 0; d < ndemes; ++d)
     if (lpl[d] > m) m = lpl[d];
 
-    double loglik = negInf();
-    if (isFinite(m)) {
-      double sumexp = 0;
-      for (int d = 0; d < ndemes; ++d)
-        sumexp += std::exp(lpl[d] - m);
-      loglik = std::log(sumexp) + m;
-    }
+  double loglik = negInf();
+  if (isFinite(m)) {
+    double sumexp = 0;
+    for (int d = 0; d < ndemes; ++d)
+      sumexp += std::exp(lpl[d] - m);
+    loglik = std::log(sumexp) + m;
+  }
 
-    return List::create(
-      _["loglik"] = loglik,
-      _["dyn_L"]  = dyn_L
-    );
+  return List::create(
+    _["loglik"] = loglik,
+    _["dyn_L"]  = dyn_L
+  );
 }
 
 
@@ -789,82 +789,82 @@ double log_lik_ptree_given_ctree_cpp(const List& ctree_list,
     for (int r : rows)
       if (r > max_row_index) max_row_index = r;
 
-      double inf_time = NA_REAL;
+    double inf_time = NA_REAL;
 
-      for (int i = 0; i < L; ++i) {
-        if (static_cast<int>(ctree(i,1)) == max_row_index) {
-          // BUT R code checks ctree[,2] == max(rows)
-          // i.e., column 2 (child1 index) equals max row id
-          // not column 1
-        }
+    for (int i = 0; i < L; ++i) {
+      if (static_cast<int>(ctree(i,1)) == max_row_index) {
+        // BUT R code checks ctree[,2] == max(rows)
+        // i.e., column 2 (child1 index) equals max row id
+        // not column 1
+      }
+    }
+
+    // Correct version: find row where child1 == max(rows)
+    inf_time = NA_REAL;
+    for (int i = 0; i < L; ++i) {
+      double child1 = ctree(i,1);  // column 2 in R
+      if (!NumericVector::is_na(child1) &&
+          static_cast<int>(child1) == (max_row_index + 1)) {
+        inf_time = ctree(i,0);
+        break;
+      }
+    }
+
+    // If not found (very rare), fall back to earliest event time
+    if (!R_finite(inf_time)) {
+      inf_time = ctree(rows.back(), 0);
+    }
+
+    int lineages = 0;
+
+    // ----------------------------------------------------
+    // Sweep events: from most recent → oldest for this host
+    // ----------------------------------------------------
+    int rowsN = rows.size();
+    for (int idx = 0; idx < rowsN; ++idx) {
+
+      int row = rows[idx];
+      double time1 = ctree(row, 0);
+
+      // Leaf or internal?
+      if (static_cast<int>(ctree(row,2)) == 0) {
+        lineages++;
+      } else {
+        lineages--;
       }
 
-      // Correct version: find row where child1 == max(rows)
-      inf_time = NA_REAL;
-      for (int i = 0; i < L; ++i) {
-        double child1 = ctree(i,1);  // column 2 in R
-        if (!NumericVector::is_na(child1) &&
-            static_cast<int>(child1) == (max_row_index + 1)) {
-          inf_time = ctree(i,0);
-          break;
-        }
-      }
+      double time2;
+      int is_coal = 0;
 
-      // If not found (very rare), fall back to earliest event time
-      if (!R_finite(inf_time)) {
-        inf_time = ctree(rows.back(), 0);
-      }
+      if (idx < rowsN - 1) {
+        int row2 = rows[idx + 1];
+        time2 = ctree(row2, 0);
 
-      int lineages = 0;
-
-      // ----------------------------------------------------
-      // Sweep events: from most recent → oldest for this host
-      // ----------------------------------------------------
-      int rowsN = rows.size();
-      for (int idx = 0; idx < rowsN; ++idx) {
-
-        int row = rows[idx];
-        double time1 = ctree(row, 0);
-
-        // Leaf or internal?
-        if (static_cast<int>(ctree(row,2)) == 0) {
-          lineages++;
-        } else {
-          lineages--;
-        }
-
-        double time2;
-        int is_coal = 0;
-
-        if (idx < rowsN - 1) {
-          int row2 = rows[idx + 1];
-          time2 = ctree(row2, 0);
-
-          if (static_cast<int>(ctree(row2, 2)) == 0)
-            is_coal = 0;
-          else
-            is_coal = 1;
-        } else {
-          // last interval goes to inf_time
-          time2 = inf_time;
+        if (static_cast<int>(ctree(row2, 2)) == 0)
           is_coal = 0;
-        }
-
-        // number of unordered lineage pairs = choose(lineages,2)
-        double combs = 0.0;
-        if (lineages >= 2)
-          combs = (double)lineages * (lineages - 1) / 2.0;
-
-        log_lik += log_likelihood_coalescence_linear_cpp(
-          inf_time,
-          time2,
-          time1,
-          kappa,
-          lambda,
-          combs,
-          is_coal
-        );
+        else
+          is_coal = 1;
+      } else {
+        // last interval goes to inf_time
+        time2 = inf_time;
+        is_coal = 0;
       }
+
+      // number of unordered lineage pairs = choose(lineages,2)
+      double combs = 0.0;
+      if (lineages >= 2)
+        combs = (double)lineages * (lineages - 1) / 2.0;
+
+      log_lik += log_likelihood_coalescence_linear_cpp(
+        inf_time,
+        time2,
+        time1,
+        kappa,
+        lambda,
+        combs,
+        is_coal
+      );
+    }
   }
 
   return log_lik;

@@ -11,6 +11,12 @@
 #' @importFrom utils combn getFromNamespace
 NULL
 
+
+#' @useDynLib TransPhylo2, .registration = TRUE
+#' @importFrom Rcpp evalCpp
+NULL
+
+
 .onUnload <- function (libpath) {
   library.dynam.unload("TransPhylo2", libpath)
 }
