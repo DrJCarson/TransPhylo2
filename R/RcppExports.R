@@ -9,6 +9,10 @@ dyn_U_cpp <- function(ttree, grid, omega, w_shape, w_scale, obs_end, grid_delta,
     .Call(`_TransPhylo2_dyn_U_cpp`, ttree, grid, omega, w_shape, w_scale, obs_end, grid_delta, host1, deme1, host2, deme2, pm)
 }
 
+dyn_T_cpp <- function(ttree, obs, grid, omega, omega_bar, pit, off_r, off_p, piV, ws_shape, ws_scale, obs_start, obs_end, grid_delta, host, deme) {
+    .Call(`_TransPhylo2_dyn_T_cpp`, ttree, obs, grid, omega, omega_bar, pit, off_r, off_p, piV, ws_shape, ws_scale, obs_start, obs_end, grid_delta, host, deme)
+}
+
 log_lik_ttree_multiparm_cpp <- function(ttree_list, grid, fn_list, off_r, off_p, piV, w_shape, w_scale, ws_shape, ws_scale, obs_start, obs_end, grid_delta, ndemes, pm, demes_prior) {
     .Call(`_TransPhylo2_log_lik_ttree_multiparm_cpp`, ttree_list, grid, fn_list, off_r, off_p, piV, w_shape, w_scale, ws_shape, ws_scale, obs_start, obs_end, grid_delta, ndemes, pm, demes_prior)
 }

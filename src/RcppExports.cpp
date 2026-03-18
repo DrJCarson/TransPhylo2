@@ -45,6 +45,32 @@ BEGIN_RCPP
     return rcpp_result_gen;
 END_RCPP
 }
+// dyn_T_cpp
+double dyn_T_cpp(const NumericMatrix& ttree, const NumericMatrix& obs, const NumericVector& grid, const NumericMatrix& omega, const NumericMatrix& omega_bar, const NumericMatrix& pit, const NumericVector& off_r, const NumericVector& off_p, const NumericVector& piV, double ws_shape, double ws_scale, double obs_start, double obs_end, double grid_delta, int host, int deme);
+RcppExport SEXP _TransPhylo2_dyn_T_cpp(SEXP ttreeSEXP, SEXP obsSEXP, SEXP gridSEXP, SEXP omegaSEXP, SEXP omega_barSEXP, SEXP pitSEXP, SEXP off_rSEXP, SEXP off_pSEXP, SEXP piVSEXP, SEXP ws_shapeSEXP, SEXP ws_scaleSEXP, SEXP obs_startSEXP, SEXP obs_endSEXP, SEXP grid_deltaSEXP, SEXP hostSEXP, SEXP demeSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type ttree(ttreeSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type obs(obsSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type grid(gridSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type omega(omegaSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type omega_bar(omega_barSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type pit(pitSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type off_r(off_rSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type off_p(off_pSEXP);
+    Rcpp::traits::input_parameter< const NumericVector& >::type piV(piVSEXP);
+    Rcpp::traits::input_parameter< double >::type ws_shape(ws_shapeSEXP);
+    Rcpp::traits::input_parameter< double >::type ws_scale(ws_scaleSEXP);
+    Rcpp::traits::input_parameter< double >::type obs_start(obs_startSEXP);
+    Rcpp::traits::input_parameter< double >::type obs_end(obs_endSEXP);
+    Rcpp::traits::input_parameter< double >::type grid_delta(grid_deltaSEXP);
+    Rcpp::traits::input_parameter< int >::type host(hostSEXP);
+    Rcpp::traits::input_parameter< int >::type deme(demeSEXP);
+    rcpp_result_gen = Rcpp::wrap(dyn_T_cpp(ttree, obs, grid, omega, omega_bar, pit, off_r, off_p, piV, ws_shape, ws_scale, obs_start, obs_end, grid_delta, host, deme));
+    return rcpp_result_gen;
+END_RCPP
+}
 // log_lik_ttree_multiparm_cpp
 List log_lik_ttree_multiparm_cpp(const List& ttree_list, const NumericVector& grid, const List& fn_list, const NumericVector& off_r, const NumericVector& off_p, const NumericVector& piV, double w_shape, double w_scale, double ws_shape, double ws_scale, double obs_start, double obs_end, double grid_delta, int ndemes, const NumericMatrix& pm, const NumericVector& demes_prior);
 RcppExport SEXP _TransPhylo2_log_lik_ttree_multiparm_cpp(SEXP ttree_listSEXP, SEXP gridSEXP, SEXP fn_listSEXP, SEXP off_rSEXP, SEXP off_pSEXP, SEXP piVSEXP, SEXP w_shapeSEXP, SEXP w_scaleSEXP, SEXP ws_shapeSEXP, SEXP ws_scaleSEXP, SEXP obs_startSEXP, SEXP obs_endSEXP, SEXP grid_deltaSEXP, SEXP ndemesSEXP, SEXP pmSEXP, SEXP demes_priorSEXP) {
@@ -168,6 +194,7 @@ END_RCPP
 static const R_CallMethodDef CallEntries[] = {
     {"_TransPhylo2_build_pm_cpp", (DL_FUNC) &_TransPhylo2_build_pm_cpp, 2},
     {"_TransPhylo2_dyn_U_cpp", (DL_FUNC) &_TransPhylo2_dyn_U_cpp, 12},
+    {"_TransPhylo2_dyn_T_cpp", (DL_FUNC) &_TransPhylo2_dyn_T_cpp, 16},
     {"_TransPhylo2_log_lik_ttree_multiparm_cpp", (DL_FUNC) &_TransPhylo2_log_lik_ttree_multiparm_cpp, 16},
     {"_TransPhylo2_log_lik_ttree_multiparm_part_cpp", (DL_FUNC) &_TransPhylo2_log_lik_ttree_multiparm_part_cpp, 18},
     {"_TransPhylo2_log_likelihood_coalescence_linear_cpp", (DL_FUNC) &_TransPhylo2_log_likelihood_coalescence_linear_cpp, 7},

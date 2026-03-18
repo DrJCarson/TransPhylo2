@@ -74,6 +74,7 @@ num_approx_disc <- function(grid,
 #' @param obs.end End date for observations
 #' @param ndemes Number of demes
 #' @param pm Transmission probability matrix between demes
+#' @export
 num_approx_disc_multi <- function(grid,
                             off.r,
                             off.p,

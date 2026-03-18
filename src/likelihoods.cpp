@@ -62,6 +62,7 @@ double dyn_U_cpp(const NumericMatrix& ttree,
 
 inline bool isFinite(double x) { return R_finite(x); }
 
+//[[Rcpp::export]]
 double dyn_T_cpp(const NumericMatrix& ttree,
                  const NumericMatrix& obs,
                  const NumericVector& grid,

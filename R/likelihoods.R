@@ -112,6 +112,7 @@ log_lik_ttree <- function(ttree, grid, fn_list, off.r, off.p, pi, w.shape, w.sca
 #' @param lambda Growth rate
 #' @param branch_combs Number of possible coalescence possibilities
 #' @param coalescence Whether or not a coalescence occurs at final_time
+#' @export
 log_likelihood_coalescence_linear <- function(infected_time, final_time,
                                               start_time, kappa, lambda,
                                               branch_combs, coalescence) {
@@ -166,6 +167,7 @@ log_likelihood_coalescence_linear <- function(infected_time, final_time,
 #' @param kappa Initial pathogen population
 #' @param lambda Pathogen growth rate
 #' @param hosts Hosts over which likelihood is calculated
+#' @export
 log_lik_ptree_given_ctree <- function(ctree, kappa, lambda, hosts = NA) {
 
   log_lik <- 0

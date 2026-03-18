@@ -16,6 +16,7 @@
 #' @param grid.delta Discrete time step
 #' @param hosts Host for which likelihood is calculated
 #' @param deme Deme for which likelihood is calculated
+#' @export
 dyn_T <- function(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.shape,
                           ws.scale, obs.start, obs.end, grid.delta = 1 / 365, host, deme) {
 
@@ -69,6 +70,7 @@ dyn_T <- function(ttree, obs, grid, omega, omega_bar, pit, off.r, off.p, pi, ws.
 #' @param host2 Infected for which likelihood is calculated
 #' @param deme2 Infected deme for which likelihood is calculated
 #' @param pm Transition probability matrix between demes
+#' @export
 dyn_U <- function(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta = 1 / 365, host1, deme1, host2, deme2, pm) {
 
   inf_time1 <- ttree[host1, 1]
@@ -105,6 +107,7 @@ dyn_U <- function(ttree, grid, omega, w.shape, w.scale, obs.end, grid.delta = 1 
 #' @param ndemes Number of demes
 #' @param pm Transmission probability matrix between demes
 #' @param demes.prior Prior probability for the deme of the root host
+#' @export
 log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.shape, w.scale, ws.shape,
                           ws.scale, obs.start, obs.end, grid.delta, ndemes, pm, demes.prior) {
 
@@ -297,6 +300,7 @@ log_lik_ttree_multiparm <- function(ttree, grid, fn_list, off.r, off.p, pi, w.sh
 #' @param demes.prior Prior probability for the deme of the root host
 #' @param dyn_L Existing likelihood matrix from the dynamic programming algorithm
 #' @param hosts Hosts over which likelihood is calculated
+#' @export
 log_lik_ttree_multiparm_part <- function(ttree, grid, fn_list, off.r, off.p, pi, w.shape, w.scale, ws.shape,
                                     ws.scale, obs.start, obs.end, grid.delta, ndemes, pm, demes.prior,
                                     dyn_L, hosts) {
