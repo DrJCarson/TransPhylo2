@@ -3,6 +3,7 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
+//' @export
 // [[Rcpp::export]]
 double dyn_U_cpp(const NumericMatrix& ttree,
                  const NumericVector& grid,
@@ -62,6 +63,7 @@ double dyn_U_cpp(const NumericMatrix& ttree,
 
 inline bool isFinite(double x) { return R_finite(x); }
 
+//' @export
 //[[Rcpp::export]]
 double dyn_T_cpp(const NumericMatrix& ttree,
                  const NumericMatrix& obs,
@@ -186,6 +188,7 @@ double dyn_T_cpp(const NumericMatrix& ttree,
 
 inline double negInf() { return -std::numeric_limits<double>::infinity(); }
 
+//' @export
 // [[Rcpp::export]]
 List log_lik_ttree_multiparm_cpp(const List& ttree_list,
                                  const NumericVector& grid,
@@ -412,7 +415,7 @@ List log_lik_ttree_multiparm_cpp(const List& ttree_list,
   );
 }
 
-
+//' @export
 // [[Rcpp::export]]
 List log_lik_ttree_multiparm_part_cpp(const List& ttree_list,
                                       const NumericVector& grid,
@@ -674,6 +677,7 @@ List log_lik_ttree_multiparm_part_cpp(const List& ttree_list,
 //' @param coalescence int (1 if event is a coalescent event, else 0)
 //'
 //' @return double log-likelihood increment
+//' @export
 // [[Rcpp::export]]
 double log_likelihood_coalescence_linear_cpp(double infected_time,
                                              double final_time,
@@ -731,7 +735,7 @@ double log_likelihood_coalescence_linear_cpp(double infected_time,
   return ll;
 }
 
-
+//' @export
 // [[Rcpp::export]]
 double log_lik_ptree_given_ctree_cpp(const List& ctree_list,
                                      double kappa,

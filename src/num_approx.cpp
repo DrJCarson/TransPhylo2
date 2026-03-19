@@ -3,6 +3,7 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
+//' @export
 // [[Rcpp::export]]
 List num_approx_disc_multi_cpp(
     const NumericVector& grid,

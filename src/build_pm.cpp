@@ -3,6 +3,7 @@
 #include <RcppArmadillo.h>
 using namespace Rcpp;
 
+//' @export
 // [[Rcpp::export]]
 NumericMatrix build_pm_cpp(const NumericVector& ext_rho, int ndemes) {
   NumericMatrix pm(ndemes, ndemes);

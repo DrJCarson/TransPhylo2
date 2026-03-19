@@ -4,6 +4,7 @@
 
 using namespace Rcpp;
 
+//' @export
 // [[Rcpp::export]]
 NumericVector fast_mvrnorm_cpp(const NumericVector& mu,
                                const NumericMatrix& Sigma) {
