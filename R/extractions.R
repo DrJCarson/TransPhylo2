@@ -84,7 +84,27 @@ extractTTree <- function(ctree)  {
 
   }
 
-  l <- list(ttree = ttree, obs = obs, nam = nam, demes = demes)
+  demes_t <- numeric(max(host))
+
+  for (i in 1:max(host)) {
+
+    host_obs <- which(obs[, 2] == i)
+
+    if (length(host_obs) > 0) {
+
+      demes_t[i] <- demes[host_obs][1]
+
+    } else {
+
+      demes_t[i] <- NA
+
+    }
+
+  }
+
+
+
+  l <- list(ttree = ttree, obs = obs, nam = nam, demes = demes_t)
   class(l)<-'ttree'
 
   return(l)
