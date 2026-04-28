@@ -2,6 +2,21 @@
 # Generator token: 10BE3573-1514-4C36-9D1C-5A225CD40393
 
 #' @export
+extract_host_minitree_cpp <- function(ctree_list, host) {
+    .Call(`_TransPhylo2_extract_host_minitree_cpp`, ctree_list, host)
+}
+
+#' @export
+enumerate_transmission_clusters_cpp <- function(down_hosts, hosts_count, hosts_type, unique_hosts, interval) {
+    .Call(`_TransPhylo2_enumerate_transmission_clusters_cpp`, down_hosts, hosts_count, hosts_type, unique_hosts, interval)
+}
+
+#' @export
+sample_transmission_cpp <- function(tr_lin) {
+    .Call(`_TransPhylo2_sample_transmission_cpp`, tr_lin)
+}
+
+#' @export
 build_pm_cpp <- function(ext_rho, ndemes) {
     .Call(`_TransPhylo2_build_pm_cpp`, ext_rho, ndemes)
 }

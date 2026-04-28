@@ -11,6 +11,44 @@ Rcpp::Rostream<true>&  Rcpp::Rcout = Rcpp::Rcpp_cout_get();
 Rcpp::Rostream<false>& Rcpp::Rcerr = Rcpp::Rcpp_cerr_get();
 #endif
 
+// extract_host_minitree_cpp
+List extract_host_minitree_cpp(const List& ctree_list, int host);
+RcppExport SEXP _TransPhylo2_extract_host_minitree_cpp(SEXP ctree_listSEXP, SEXP hostSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const List& >::type ctree_list(ctree_listSEXP);
+    Rcpp::traits::input_parameter< int >::type host(hostSEXP);
+    rcpp_result_gen = Rcpp::wrap(extract_host_minitree_cpp(ctree_list, host));
+    return rcpp_result_gen;
+END_RCPP
+}
+// enumerate_transmission_clusters_cpp
+std::vector< std::vector< Rcpp::List > > enumerate_transmission_clusters_cpp(const NumericMatrix& down_hosts, const IntegerVector& hosts_count, const IntegerVector& hosts_type, const IntegerVector& unique_hosts, const NumericMatrix& interval);
+RcppExport SEXP _TransPhylo2_enumerate_transmission_clusters_cpp(SEXP down_hostsSEXP, SEXP hosts_countSEXP, SEXP hosts_typeSEXP, SEXP unique_hostsSEXP, SEXP intervalSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type down_hosts(down_hostsSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type hosts_count(hosts_countSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type hosts_type(hosts_typeSEXP);
+    Rcpp::traits::input_parameter< const IntegerVector& >::type unique_hosts(unique_hostsSEXP);
+    Rcpp::traits::input_parameter< const NumericMatrix& >::type interval(intervalSEXP);
+    rcpp_result_gen = Rcpp::wrap(enumerate_transmission_clusters_cpp(down_hosts, hosts_count, hosts_type, unique_hosts, interval));
+    return rcpp_result_gen;
+END_RCPP
+}
+// sample_transmission_cpp
+Rcpp::List sample_transmission_cpp(const Rcpp::List& tr_lin);
+RcppExport SEXP _TransPhylo2_sample_transmission_cpp(SEXP tr_linSEXP) {
+BEGIN_RCPP
+    Rcpp::RObject rcpp_result_gen;
+    Rcpp::RNGScope rcpp_rngScope_gen;
+    Rcpp::traits::input_parameter< const Rcpp::List& >::type tr_lin(tr_linSEXP);
+    rcpp_result_gen = Rcpp::wrap(sample_transmission_cpp(tr_lin));
+    return rcpp_result_gen;
+END_RCPP
+}
 // build_pm_cpp
 NumericMatrix build_pm_cpp(const NumericVector& ext_rho, int ndemes);
 RcppExport SEXP _TransPhylo2_build_pm_cpp(SEXP ext_rhoSEXP, SEXP ndemesSEXP) {
@@ -192,6 +230,9 @@ END_RCPP
 }
 
 static const R_CallMethodDef CallEntries[] = {
+    {"_TransPhylo2_extract_host_minitree_cpp", (DL_FUNC) &_TransPhylo2_extract_host_minitree_cpp, 2},
+    {"_TransPhylo2_enumerate_transmission_clusters_cpp", (DL_FUNC) &_TransPhylo2_enumerate_transmission_clusters_cpp, 5},
+    {"_TransPhylo2_sample_transmission_cpp", (DL_FUNC) &_TransPhylo2_sample_transmission_cpp, 1},
     {"_TransPhylo2_build_pm_cpp", (DL_FUNC) &_TransPhylo2_build_pm_cpp, 2},
     {"_TransPhylo2_dyn_U_cpp", (DL_FUNC) &_TransPhylo2_dyn_U_cpp, 12},
     {"_TransPhylo2_dyn_T_cpp", (DL_FUNC) &_TransPhylo2_dyn_T_cpp, 16},

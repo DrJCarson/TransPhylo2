@@ -102,8 +102,6 @@ extractTTree <- function(ctree)  {
 
   }
 
-
-
   l <- list(ttree = ttree, obs = obs, nam = nam, demes = demes_t)
   class(l)<-'ttree'
 
